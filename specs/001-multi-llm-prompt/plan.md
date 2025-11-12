@@ -12,9 +12,9 @@ Build a Tauri 2.0-based desktop application that enables users to send a single 
 ## Technical Context
 
 **Language/Version**: Rust (latest stable for Tauri 2.0), TypeScript/JavaScript for frontend
-**Primary Dependencies**: Tauri 2.0, NEEDS CLARIFICATION (frontend framework - React/Vue/Svelte/Vanilla)
+**Primary Dependencies**: Tauri 2.0, Svelte (with Vite), serde, uuid, chrono, log, schemars
 **Storage**: Tauri app data directory for webview session cookies (persistent), no database required
-**Testing**: cargo test (Rust backend), NEEDS CLARIFICATION (frontend test framework)
+**Testing**: cargo test (Rust backend), Vitest + @testing-library/svelte (frontend)
 **Target Platform**: Cross-platform desktop (Windows 10+/WebView2, macOS 10.15+/WebKit, Linux/WebKitGTK)
 **Project Type**: Desktop application (Tauri hybrid architecture - Rust backend + web frontend)
 **Performance Goals**: App startup <3s, prompt submission initiation <10s for 3 providers, status updates <2s
