@@ -122,7 +122,7 @@ A privacy-conscious user wants assurance that their prompts, credentials, and us
 - **FR-003**: System MUST allow users to select between 1 and 3 LLM providers before sending
 - **FR-004**: System MUST prevent prompt submission if no providers are selected
 - **FR-005**: System MUST inject and submit the prompt to all selected LLM providers via JavaScript DOM manipulation when the user initiates send
-- **FR-006**: System MUST display real-time status for each provider (pending, in progress, success, failed)
+- **FR-006**: System MUST display real-time status for each provider (pending, in progress, success, failed) with status updates propagating to the UI within 2 seconds of state change (per SC-003)
 - **FR-007**: System MUST apply a 30-second timeout to each provider submission attempt
 - **FR-008**: System MUST automatically retry once on timeout or network errors, updating status to show retry attempt
 - **FR-009**: System MUST NOT automatically retry on authentication failures or rate-limiting errors
@@ -133,10 +133,17 @@ A privacy-conscious user wants assurance that their prompts, credentials, and us
 - **FR-014**: System MUST handle authentication failures gracefully by notifying the user
 - **FR-015**: System MUST run as a standalone desktop application on Windows, macOS, and Linux
 - **FR-016**: System MUST display selected provider responses in a split-screen layout within a single app window
-- **FR-017**: System MUST arrange provider webview panels according to selection count: 1 provider (full width), 2 providers (vertical split), 3 providers (grid layout)
+- **FR-017**: System MUST arrange provider webview panels according to selection count: 1 provider (full width), 2 providers (vertical 50/50 split), 3 providers (horizontal row with 33.3% width each)
 - **FR-018**: System MUST label each provider panel clearly to identify which LLM is being displayed
 - **FR-019**: System MUST detect when browser sessions are unavailable or expired
 - **FR-020**: System MUST operate entirely offline except for communication with LLM provider websites
+- **FR-021**: System MUST ignore prompt text modifications made while a submission is in progress; modifications only apply to the next submission
+- **FR-022**: System MUST provide a mechanism to update provider selector configurations (CSS selectors) without requiring app recompilation (supports TC-007)
+- **FR-023**: System MUST cancel all in-progress submissions when the app is closed, without persisting incomplete submission state
+- **FR-024**: System MUST enforce a minimum window size of 800x600 pixels to ensure split-screen layouts remain usable
+- **FR-025**: System MUST clear previous provider responses from the split-screen layout when a new prompt is submitted
+- **FR-026**: System MUST dynamically recalculate and apply split-screen layout when provider selection changes, even if responses are currently visible
+- **FR-027**: System MUST display retry attempt count (e.g., "Retrying (1/1)") in status UI when transitioning to Retrying state
 
 ### Key Entities
 
@@ -155,7 +162,8 @@ A privacy-conscious user wants assurance that their prompts, credentials, and us
 - **TC-004**: Application binary size SHOULD remain under 15MB (excluding system webview dependencies)
 - **TC-005**: Provider selection MUST be limited to a maximum of 3 simultaneous providers to ensure usable split-screen comparison on standard displays
 - **TC-006**: Prompt injection MUST use JavaScript injection via Tauri's webview eval API to locate chat input elements (textarea/input) using provider-specific CSS selectors or aria-labels, set values, and programmatically trigger submit actions
-- **TC-007**: Each provider MUST have a maintained selector configuration to handle provider website updates without requiring app recompilation
+- **TC-007**: Each provider MUST have a maintained selector configuration stored in config/providers.json to handle provider website updates without requiring app recompilation; updates are applied by editing the JSON file and restarting the app
+- **TC-008**: Application MUST enforce a minimum window size of 800x600 pixels to ensure split-screen layouts remain usable on standard displays
 
 ## Success Criteria *(mandatory)*
 

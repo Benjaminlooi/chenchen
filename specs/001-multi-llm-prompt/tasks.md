@@ -301,6 +301,7 @@ Based on plan.md structure:
 - [ ] T122 [US1] Display status for each provider (Pending, InProgress, Retrying, Success, Failed) in StatusDisplay.svelte
 - [ ] T123 [US1] Display error messages for failed submissions in StatusDisplay.svelte
 - [ ] T124 [US1] Integrate PromptInput, ProviderSelector, ProviderPanel, StatusDisplay in src/App.svelte
+- [ ] T124a [US1] Integration test for end-to-end submission timing: prompt to all 3 providers completes <10s in src-tauri/tests/integration/submission_timing_test.rs
 
 **⚠️ VERIFY**: Run `cargo test submission_flow_test && npm test` - all tests should PASS
 
@@ -361,6 +362,7 @@ Based on plan.md structure:
 - [ ] T142 [US5] Remove any prompt history/logging code in src-tauri/src/
 - [ ] T143 [US5] Document data handling: only session cookies managed by platform webview (FR-012) in docs/privacy-policy.md
 - [ ] T144 [US5] Document network usage: only LLM provider websites contacted (FR-013) in docs/privacy-policy.md
+- [ ] T144a [P] [US5] Create integration test to measure submission success rate over 20 attempts in src-tauri/tests/integration/success_rate_test.rs
 
 **⚠️ VERIFY**: Run `cargo test privacy_test` - all tests should PASS
 
@@ -375,9 +377,10 @@ Based on plan.md structure:
 - [ ] T145 [P] Add structured logging for all Tauri commands in src-tauri/src/commands.rs
 - [ ] T146 [P] Add structured logging for injection attempts (element found/not found) in src-tauri/src/injection/injector.rs
 - [ ] T147 [P] Add structured logging for timeout events with timestamps in src-tauri/src/status/tracker.rs
+- [ ] T147a [P] Verify structured logging outputs both JSON (machine-readable) and human-readable formats per Constitution Principle IV in src-tauri/tests/integration/logging_format_test.rs
 - [ ] T148 [P] Refactor error handling: consistent CommandError usage across all commands in src-tauri/src/commands.rs
 - [ ] T149 [P] Add CSS styling for PromptInput, ProviderSelector, StatusDisplay components in src/components/
-- [ ] T150 [P] Add responsive design for split-screen layout (minimum window size 800x600) in src/App.svelte
+- [ ] T150 [P] Add responsive design for split-screen layout enforcing TC-008 minimum window size in src/App.svelte
 - [ ] T151 [P] Add loading spinners for in-progress submissions in StatusDisplay.svelte
 - [ ] T152 [P] Performance: Optimize layout recalculation with debouncing in App.svelte
 - [ ] T153 [P] Documentation: Update README.md with quickstart instructions
@@ -388,6 +391,8 @@ Based on plan.md structure:
 - [ ] T158 [P] Security: Audit for command injection vulnerabilities
 - [ ] T159 Build production binary: npm run tauri build
 - [ ] T160 Verify binary size <15MB (TC-004)
+- [ ] T160a Validate SC-002: Run success_rate_test and verify >=95% success rate with valid sessions
+- [ ] T160b Validate SC-001: Run submission_timing_test and verify <10 second submission to 3 LLMs
 
 ---
 
