@@ -7,6 +7,8 @@ pub mod commands;
 pub mod providers;
 pub mod layout;
 pub mod webview;
+pub mod injection;
+pub mod status;
 
 use state::AppState;
 
