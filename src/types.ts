@@ -1,102 +1,148 @@
+// TypeScript type definitions mirroring Rust types
+// These types ensure type safety across the Tauri IPC boundary
+
 import { z } from 'zod';
 
 /**
- * Provider identifier for supported LLM providers
- * Must match Rust ProviderId enum
+ * Provider identifier enum for the three supported LLM providers
  */
-export const ProviderIdSchema = z.enum(['ChatGPT', 'Gemini', 'Claude']);
-export type ProviderId = z.infer<typeof ProviderIdSchema>;
+export enum ProviderId {
+  ChatGPT = 'ChatGPT',
+  Gemini = 'Gemini',
+  Claude = 'Claude',
+}
+
+export const ProviderIdSchema = z.nativeEnum(ProviderId);
 
 /**
- * Status of a prompt submission
- * Must match Rust SubmissionStatus enum
+ * Status of a prompt submission to a provider
  */
-export const SubmissionStatusSchema = z.enum([
-  'Pending',
-  'InProgress',
-  'Retrying',
-  'Success',
-  'Failed'
-]);
-export type SubmissionStatus = z.infer<typeof SubmissionStatusSchema>;
+export enum SubmissionStatus {
+  Pending = 'Pending',
+  InProgress = 'InProgress',
+  Retrying = 'Retrying',
+  Success = 'Success',
+  Failed = 'Failed',
+}
+
+export const SubmissionStatusSchema = z.nativeEnum(SubmissionStatus);
 
 /**
- * Error types that can occur during submission
- * Must match Rust SubmissionErrorType enum
+ * Error types that can occur during prompt submission
  */
-export const SubmissionErrorTypeSchema = z.enum([
-  'Timeout',
-  'NetworkError',
-  'AuthenticationError',
-  'RateLimitError',
-  'ElementNotFound',
-  'InjectionFailed'
-]);
-export type SubmissionErrorType = z.infer<typeof SubmissionErrorTypeSchema>;
+export enum SubmissionErrorType {
+  Timeout = 'Timeout',
+  NetworkError = 'NetworkError',
+  AuthenticationError = 'AuthenticationError',
+  RateLimitError = 'RateLimitError',
+  ElementNotFound = 'ElementNotFound',
+  InjectionFailed = 'InjectionFailed',
+}
+
+export const SubmissionErrorTypeSchema = z.nativeEnum(SubmissionErrorType);
 
 /**
- * Standard error returned from Tauri commands
- * Must match Rust CommandError struct
+ * Standard error type for Tauri commands
  */
+export interface CommandError {
+  code: string;
+  message: string;
+}
+
 export const CommandErrorSchema = z.object({
   code: z.string(),
-  message: z.string()
+  message: z.string(),
 });
-export type CommandError = z.infer<typeof CommandErrorSchema>;
 
 /**
- * Provider information
+ * Represents an LLM provider with its configuration and state
  */
+export interface Provider {
+  id: ProviderId;
+  name: string;
+  url: string;
+  is_selected: boolean;
+  is_authenticated: boolean;
+  selector_config_id: string;
+}
+
 export const ProviderSchema = z.object({
   id: ProviderIdSchema,
   name: z.string(),
   url: z.string(),
   is_selected: z.boolean(),
   is_authenticated: z.boolean(),
-  selector_config_id: z.string()
+  selector_config_id: z.string(),
 });
-export type Provider = z.infer<typeof ProviderSchema>;
 
 /**
- * Layout type for provider panel arrangement
+ * Layout type based on number of selected providers
  */
-export const LayoutTypeSchema = z.enum(['Full', 'VerticalSplit', 'Grid']);
-export type LayoutType = z.infer<typeof LayoutTypeSchema>;
+export enum LayoutType {
+  Full = 'Full',
+  VerticalSplit = 'VerticalSplit',
+  Grid = 'Grid',
+}
+
+export const LayoutTypeSchema = z.nativeEnum(LayoutType);
 
 /**
- * Panel dimensions (percentages from 0.0 to 1.0)
+ * Panel dimensions for split-screen layout
  */
+export interface PanelDimension {
+  provider_id: ProviderId;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export const PanelDimensionSchema = z.object({
   provider_id: ProviderIdSchema,
   x: z.number().min(0).max(1),
   y: z.number().min(0).max(1),
   width: z.number().min(0).max(1),
-  height: z.number().min(0).max(1)
+  height: z.number().min(0).max(1),
 });
-export type PanelDimension = z.infer<typeof PanelDimensionSchema>;
 
 /**
- * Layout configuration
+ * Layout configuration for provider panels
  */
+export interface LayoutConfiguration {
+  provider_count: number;
+  layout_type: LayoutType;
+  panel_dimensions: PanelDimension[];
+}
+
 export const LayoutConfigurationSchema = z.object({
   provider_count: z.number().min(1).max(3),
   layout_type: LayoutTypeSchema,
-  panel_dimensions: z.array(PanelDimensionSchema)
+  panel_dimensions: z.array(PanelDimensionSchema),
 });
-export type LayoutConfiguration = z.infer<typeof LayoutConfigurationSchema>;
 
 /**
- * Submission state
+ * Submission entity tracking prompt submission to a provider
  */
+export interface Submission {
+  id: string;
+  provider_id: ProviderId;
+  prompt_content: string;
+  status: SubmissionStatus;
+  attempt_count: number;
+  error_type?: SubmissionErrorType;
+  error_message?: string;
+  started_at?: string;
+  completed_at?: string;
+}
+
 export const SubmissionSchema = z.object({
-  id: z.string(), // UUID
+  id: z.string(),
   provider_id: ProviderIdSchema,
   prompt_content: z.string(),
   status: SubmissionStatusSchema,
   attempt_count: z.number().min(0).max(2),
   error_type: SubmissionErrorTypeSchema.optional(),
   error_message: z.string().optional(),
-  started_at: z.string().optional(), // ISO 8601
-  completed_at: z.string().optional() // ISO 8601
+  started_at: z.string().optional(),
+  completed_at: z.string().optional(),
 });
-export type Submission = z.infer<typeof SubmissionSchema>;

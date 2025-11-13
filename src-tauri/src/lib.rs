@@ -4,6 +4,7 @@ use log::{info, error};
 pub mod types;
 pub mod state;
 pub mod commands;
+pub mod providers;
 
 use state::AppState;
 
@@ -26,7 +27,11 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .manage(AppState::new()) // Register shared application state
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            commands::get_providers,
+            commands::update_provider_selection,
+        ])
         .run(tauri::generate_context!())
         .unwrap_or_else(|err| {
             error!("Error running Tauri application: {}", err);

@@ -1,61 +1,73 @@
+// Tauri command invocation wrapper with type safety
+// Provides strongly-typed wrappers around the Tauri invoke API
+
 import { invoke as tauriInvoke } from '@tauri-apps/api/core';
-import type { CommandError } from '../types';
+import type { Provider, LayoutConfiguration, Submission } from '../types';
+import { ProviderId } from '../types';
 
 /**
- * Type-safe wrapper for Tauri invoke() with error handling
- *
- * Usage:
- * ```ts
- * import { invoke } from './services/tauri';
- *
- * const providers = await invoke<Provider[]>('get_providers');
- * ```
+ * Type-safe wrapper for Tauri command invocation
  */
-export async function invoke<T>(
-  command: string,
-  args?: Record<string, unknown>
-): Promise<T> {
-  try {
-    const result = await tauriInvoke<T>(command, args);
-    return result;
-  } catch (error) {
-    // Re-throw as CommandError if it matches the structure
-    if (
-      error &&
-      typeof error === 'object' &&
-      'code' in error &&
-      'message' in error
-    ) {
-      throw error as CommandError;
-    }
+class TauriService {
+  /**
+   * Gets all available providers
+   */
+  async getProviders(): Promise<Provider[]> {
+    return tauriInvoke<Provider[]>('get_providers');
+  }
 
-    // Otherwise wrap in a generic CommandError
-    throw {
-      code: 'UnknownError',
-      message: error instanceof Error ? error.message : String(error)
-    } as CommandError;
+  /**
+   * Updates the selection state of a provider
+   */
+  async updateProviderSelection(
+    providerId: ProviderId,
+    isSelected: boolean
+  ): Promise<Provider> {
+    return tauriInvoke<Provider>('update_provider_selection', {
+      providerId,
+      isSelected,
+    });
+  }
+
+  /**
+   * Gets the layout configuration based on selected providers
+   */
+  async getLayoutConfiguration(): Promise<LayoutConfiguration> {
+    return tauriInvoke<LayoutConfiguration>('get_layout_configuration');
+  }
+
+  /**
+   * Submits a prompt to all selected providers
+   */
+  async submitPrompt(prompt: string): Promise<Submission[]> {
+    return tauriInvoke<Submission[]>('submit_prompt', { prompt });
+  }
+
+  /**
+   * Gets the status of a specific submission
+   */
+  async getSubmissionStatus(submissionId: string): Promise<Submission> {
+    return tauriInvoke<Submission>('get_submission_status', {
+      submissionId,
+    });
+  }
+
+  /**
+   * Creates a provider webview with persistent session
+   */
+  async createProviderWebview(providerId: ProviderId): Promise<void> {
+    return tauriInvoke('create_provider_webview', { providerId });
+  }
+
+  /**
+   * Checks if a provider webview is authenticated
+   */
+  async checkAuthentication(
+    providerId: ProviderId
+  ): Promise<{ is_authenticated: boolean; requires_login: boolean }> {
+    return tauriInvoke('check_authentication', { providerId });
   }
 }
 
-/**
- * Type-safe wrapper for Tauri event listeners
- * Returns an unlisten function to clean up the listener
- */
-export async function listen<T>(
-  event: string,
-  handler: (payload: T) => void
-): Promise<() => void> {
-  const { listen: tauriListen } = await import('@tauri-apps/api/event');
-  const unlisten = await tauriListen<T>(event, (event) => {
-    handler(event.payload);
-  });
-  return unlisten;
-}
-
-/**
- * Emit a custom event
- */
-export async function emit<T>(event: string, payload: T): Promise<void> {
-  const { emit: tauriEmit } = await import('@tauri-apps/api/event');
-  await tauriEmit(event, payload);
-}
+// Export singleton instance
+export const tauri = new TauriService();

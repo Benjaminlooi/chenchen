@@ -40,6 +40,9 @@ coverage/
 *.tmp
 *.temp
 
+# SvelteKit
+.svelte-kit/
+
 # OS files
 .DS_Store
 Thumbs.db
