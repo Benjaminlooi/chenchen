@@ -1,5 +1,63 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import ProviderSelector from '../components/ProviderSelector.svelte';
+  import ProviderPanel from '../components/ProviderPanel.svelte';
+  import { tauri } from '../services/tauri';
+  import type { LayoutConfiguration, Provider } from '../types';
+
+  // State
+  let layout = $state<LayoutConfiguration | null>(null);
+  let providers = $state<Provider[]>([]);
+  let layoutError = $state<string | null>(null);
+
+  // Load providers and layout on mount
+  onMount(async () => {
+    await loadProvidersAndLayout();
+
+    // Set up custom event listener for provider changes
+    window.addEventListener('providers-changed', handleProvidersChanged as EventListener);
+
+    return () => {
+      window.removeEventListener('providers-changed', handleProvidersChanged as EventListener);
+    };
+  });
+
+  async function loadProvidersAndLayout() {
+    try {
+      providers = await tauri.getProviders();
+      await updateLayout();
+    } catch (error) {
+      console.error('Failed to load providers:', error);
+    }
+  }
+
+  async function updateLayout() {
+    const selectedProviders = providers.filter((p) => p.is_selected);
+
+    if (selectedProviders.length === 0) {
+      layout = null;
+      return;
+    }
+
+    try {
+      layout = await tauri.getLayoutConfiguration();
+      layoutError = null;
+    } catch (error) {
+      console.error('Failed to get layout configuration:', error);
+      layoutError = 'Failed to calculate layout';
+      layout = null;
+    }
+  }
+
+  function handleProvidersChanged(event: CustomEvent) {
+    providers = event.detail.providers;
+    updateLayout();
+  }
+
+  function getProviderName(providerId: string): string {
+    const provider = providers.find((p) => p.id === providerId);
+    return provider?.name || providerId;
+  }
 </script>
 
 <main class="container">
@@ -8,8 +66,25 @@
 
   <ProviderSelector />
 
+  <!-- Provider panels in split-screen layout -->
+  {#if layout && layout.panel_dimensions.length > 0}
+    <div class="layout-container">
+      {#each layout.panel_dimensions as dimension (dimension.provider_id)}
+        <ProviderPanel
+          {dimension}
+          providerName={getProviderName(dimension.provider_id)}
+        />
+      {/each}
+    </div>
+  {:else if layoutError}
+    <div class="layout-error">{layoutError}</div>
+  {:else}
+    <div class="layout-placeholder">
+      <p>Select one or more providers to begin</p>
+    </div>
+  {/if}
+
   <!-- TODO: Add PromptInput component -->
-  <!-- TODO: Add ProviderPanel component for split-screen display -->
   <!-- TODO: Add StatusDisplay component -->
 </main>
 
@@ -44,6 +119,33 @@
     margin-bottom: 2rem;
   }
 
+  .layout-container {
+    position: relative;
+    width: 100%;
+    height: 600px;
+    background: #fff;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    margin-top: 2rem;
+    overflow: hidden;
+  }
+
+  .layout-placeholder,
+  .layout-error {
+    padding: 3rem;
+    text-align: center;
+    color: #999;
+    font-style: italic;
+    margin-top: 2rem;
+  }
+
+  .layout-error {
+    color: #c33;
+    background: #fee;
+    border: 1px solid #fcc;
+    border-radius: 4px;
+  }
+
   @media (prefers-color-scheme: dark) {
     :global(body) {
       color: #f6f6f6;
@@ -56,6 +158,21 @@
 
     .subtitle {
       color: #ccc;
+    }
+
+    .layout-container {
+      background: #1a1a1a;
+      border-color: #444;
+    }
+
+    .layout-placeholder {
+      color: #888;
+    }
+
+    .layout-error {
+      background: #3a1a1a;
+      border-color: #6a2a2a;
+      color: #ff6666;
     }
   }
 </style>
