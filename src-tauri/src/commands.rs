@@ -233,5 +233,43 @@ pub fn get_submission_status(
     Ok(submission)
 }
 
-// Future commands to be implemented:
-// - check_authentication (US4)
+/// Checks if a provider webview is authenticated
+/// Returns authentication status including whether login is required
+#[tauri::command]
+pub fn check_authentication(
+    state: State<AppState>,
+    provider_id: ProviderId,
+) -> Result<crate::webview::AuthenticationStatus, CommandError> {
+    use crate::webview::manager::WebviewManager;
+    use std::path::PathBuf;
+
+    info!("Command: check_authentication called for {:?}", provider_id);
+
+    // Get provider configs to access auth_check_selectors
+    let provider_configs = state.provider_configs.as_ref().ok_or_else(|| {
+        error!("Provider configurations not loaded");
+        CommandError::internal("Provider configurations not available")
+    })?;
+
+    let config = provider_configs.get_config(provider_id)?;
+
+    // Create webview manager (we don't need the actual data directory for auth check script generation)
+    let manager = WebviewManager::new(PathBuf::from("/tmp")).map_err(|e| {
+        error!("Failed to create WebviewManager: {}", e);
+        CommandError::internal("Failed to create webview manager")
+    })?;
+
+    // Generate auth check script
+    let _auth_script = manager.generate_auth_check_script(&config.auth_check_selectors);
+
+    // TODO: Execute auth_script in actual webview and parse result
+    // For now, return a mock status (assumes authenticated for demo purposes)
+    let auth_status = manager.create_auth_status_mock(provider_id, true);
+
+    info!(
+        "Auth check for {:?}: authenticated={}, requires_login={}",
+        provider_id, auth_status.is_authenticated, auth_status.requires_login
+    );
+
+    Ok(auth_status)
+}

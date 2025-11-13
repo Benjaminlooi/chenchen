@@ -3,7 +3,6 @@
 
 use chenchen_lib::injection::injector::Injector;
 use chenchen_lib::injection::InjectionResult;
-use chenchen_lib::types::ProviderId;
 
 #[test]
 fn test_injector_creation() {

@@ -1,24 +1,57 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { tauri } from '../services/tauri';
-  import type { Provider } from '../types';
+  import type { Provider, AuthenticationStatus } from '../types';
   import { ProviderId } from '../types';
 
   // Component state
   let providers: Provider[] = [];
+  let authStatuses: Map<ProviderId, AuthenticationStatus> = new Map();
   let loading = true;
   let error: string | null = null;
+  let checkingAuth = false;
 
   // Load providers on component mount
   onMount(async () => {
     try {
       providers = await tauri.getProviders();
       loading = false;
+
+      // Check authentication status for all providers
+      await checkAllAuthStatuses();
     } catch (e) {
       error = e instanceof Error ? e.message : 'Failed to load providers';
       loading = false;
     }
   });
+
+  // Check authentication status for all providers
+  async function checkAllAuthStatuses() {
+    checkingAuth = true;
+
+    try {
+      const statusPromises = providers.map((provider) =>
+        tauri.checkAuthentication(provider.id).then((status) => ({
+          providerId: provider.id,
+          status,
+        }))
+      );
+
+      const results = await Promise.all(statusPromises);
+
+      // Update auth statuses map
+      results.forEach(({ providerId, status }) => {
+        authStatuses.set(providerId, status);
+      });
+
+      // Trigger reactivity
+      authStatuses = new Map(authStatuses);
+    } catch (e) {
+      console.error('Failed to check authentication statuses:', e);
+    } finally {
+      checkingAuth = false;
+    }
+  }
 
   // Handle provider selection change
   async function handleProviderToggle(providerId: ProviderId, isSelected: boolean) {
@@ -45,6 +78,22 @@
       providers = providers.map((p) =>
         p.id === providerId ? { ...p, is_selected: !isSelected } : p
       );
+    }
+  }
+
+  // Open provider login page
+  async function handleLoginClick(providerId: ProviderId) {
+    try {
+      // Create a webview for the provider
+      const webviewInfo = await tauri.createProviderWebview(providerId);
+      console.log('Created webview for login:', webviewInfo);
+
+      // TODO: Actually open the webview window
+      // For now, open in external browser
+      window.open(providers.find((p) => p.id === providerId)?.url, '_blank');
+    } catch (e) {
+      console.error('Failed to open login page:', e);
+      error = e instanceof Error ? e.message : 'Failed to open login page';
     }
   }
 
@@ -76,20 +125,36 @@
   {:else}
     <div class="provider-list">
       {#each providers as provider (provider.id)}
-        <label class="provider-item">
-          <input
-            type="checkbox"
-            checked={provider.is_selected}
-            on:change={(e) =>
-              handleProviderToggle(provider.id, e.currentTarget.checked)}
-            data-testid={`provider-checkbox-${provider.id}`}
-          />
-          <span class="provider-icon">{getProviderIcon(provider.id)}</span>
-          <span class="provider-name">{provider.name}</span>
-          {#if !provider.is_authenticated}
-            <span class="auth-badge" title="Login required">🔒</span>
+        <div class="provider-item">
+          <label class="provider-checkbox-label">
+            <input
+              type="checkbox"
+              checked={provider.is_selected}
+              on:change={(e) =>
+                handleProviderToggle(provider.id, e.currentTarget.checked)}
+              data-testid={`provider-checkbox-${provider.id}`}
+            />
+            <span class="provider-icon">{getProviderIcon(provider.id)}</span>
+            <span class="provider-name">{provider.name}</span>
+          </label>
+
+          {#if checkingAuth}
+            <span class="auth-checking">Checking...</span>
+          {:else}
+            {@const authStatus = authStatuses.get(provider.id)}
+            {#if authStatus && authStatus.requires_login}
+              <button
+                class="login-button"
+                on:click={() => handleLoginClick(provider.id)}
+                title="Login required to use this provider"
+              >
+                🔒 Login Required
+              </button>
+            {:else if authStatus && authStatus.is_authenticated}
+              <span class="auth-badge auth-ok" title="Authenticated">✓</span>
+            {/if}
           {/if}
-        </label>
+        </div>
       {/each}
     </div>
 
@@ -141,12 +206,12 @@
   .provider-item {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 0.75rem;
     padding: 0.75rem;
     background: var(--bg-primary, white);
     border: 2px solid var(--border-color, #ddd);
     border-radius: 6px;
-    cursor: pointer;
     transition: all 0.2s;
   }
 
@@ -155,7 +220,15 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
-  .provider-item input[type='checkbox'] {
+  .provider-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    cursor: pointer;
+  }
+
+  .provider-checkbox-label input[type='checkbox'] {
     width: 20px;
     height: 20px;
     cursor: pointer;
@@ -171,9 +244,42 @@
     color: var(--text-primary, #333);
   }
 
+  .auth-checking {
+    font-size: 0.85rem;
+    color: var(--text-secondary, #999);
+    font-style: italic;
+  }
+
   .auth-badge {
     font-size: 1rem;
     opacity: 0.6;
+  }
+
+  .auth-badge.auth-ok {
+    color: var(--success-color, #4caf50);
+    opacity: 1;
+    font-weight: bold;
+  }
+
+  .login-button {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    background: var(--warning-bg, #fff3cd);
+    color: var(--warning-text, #856404);
+    border: 1px solid var(--warning-border, #ffc107);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .login-button:hover {
+    background: var(--warning-hover, #ffc107);
+    color: var(--warning-hover-text, #000);
+  }
+
+  .login-button:active {
+    transform: scale(0.98);
   }
 
   .provider-info {

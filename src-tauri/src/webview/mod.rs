@@ -27,4 +27,13 @@ pub struct WebviewInfo {
     pub data_store_id: String,
 }
 
+/// Authentication status for a provider
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+pub struct AuthenticationStatus {
+    pub provider_id: ProviderId,
+    pub is_authenticated: bool,
+    pub last_checked: String, // ISO 8601 timestamp
+    pub requires_login: bool,
+}
+
 pub mod manager;

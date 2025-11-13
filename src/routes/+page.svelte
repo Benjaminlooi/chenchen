@@ -14,8 +14,8 @@
   let submissions = $state<Submission[]>([]);
 
   // Load providers and layout on mount
-  onMount(async () => {
-    await loadProvidersAndLayout();
+  onMount(() => {
+    loadProvidersAndLayout();
 
     // Set up custom event listener for provider changes
     window.addEventListener('providers-changed', handleProvidersChanged as EventListener);
