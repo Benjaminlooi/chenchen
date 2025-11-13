@@ -146,3 +146,24 @@ export const SubmissionSchema = z.object({
   started_at: z.string().optional(),
   completed_at: z.string().optional(),
 });
+
+/**
+ * Information about a created provider webview
+ */
+export interface WebviewInfo {
+  provider_id: ProviderId;
+  label: string;
+  url: string;
+  is_persistent: boolean;
+  data_path?: string; // Windows/Linux only
+  data_store_id?: string; // macOS only
+}
+
+export const WebviewInfoSchema = z.object({
+  provider_id: ProviderIdSchema,
+  label: z.string(),
+  url: z.string(),
+  is_persistent: z.boolean(),
+  data_path: z.string().optional(),
+  data_store_id: z.string().optional(),
+});
