@@ -2,7 +2,7 @@
 // Provides strongly-typed wrappers around the Tauri invoke API
 
 import { invoke as tauriInvoke } from '@tauri-apps/api/core';
-import type { Provider, LayoutConfiguration, Submission, WebviewInfo } from '../types';
+import type { Provider, LayoutConfiguration, Submission, WebviewInfo, AuthenticationStatus } from '../types';
 import { ProviderId } from '../types';
 
 /**
@@ -65,8 +65,10 @@ class TauriService {
    */
   async checkAuthentication(
     providerId: ProviderId
-  ): Promise<{ is_authenticated: boolean; requires_login: boolean }> {
-    return tauriInvoke('check_authentication', { providerId });
+  ): Promise<AuthenticationStatus> {
+    return tauriInvoke<AuthenticationStatus>('check_authentication', {
+      provider_id: providerId
+    });
   }
 }
 

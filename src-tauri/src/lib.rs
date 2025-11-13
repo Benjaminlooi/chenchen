@@ -39,6 +39,7 @@ pub fn run() {
             commands::create_provider_webview,
             commands::submit_prompt,
             commands::get_submission_status,
+            commands::check_authentication,
         ])
         .run(tauri::generate_context!())
         .unwrap_or_else(|err| {

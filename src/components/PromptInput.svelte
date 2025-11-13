@@ -63,7 +63,7 @@
       rows="4"
       disabled={loading}
       data-testid="prompt-textarea"
-    />
+    ></textarea>
 
     <!-- T118: Send button -->
     <button

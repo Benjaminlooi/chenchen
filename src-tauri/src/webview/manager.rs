@@ -1,5 +1,5 @@
 use crate::types::ProviderId;
-use crate::webview::WebviewInfo;
+use crate::webview::{WebviewInfo, AuthenticationStatus};
 use std::path::PathBuf;
 
 #[cfg(target_os = "macos")]
@@ -94,6 +94,56 @@ impl WebviewManager {
         let data_dir = self.get_data_directory(provider_id);
         std::fs::create_dir_all(&data_dir)?;
         Ok(data_dir)
+    }
+
+    /// Generates JavaScript to check authentication status
+    /// Returns script that checks for presence of auth_check_selectors
+    ///
+    /// # Arguments
+    /// * `auth_check_selectors` - CSS selectors that indicate unauthenticated state
+    ///
+    /// # Returns
+    /// JavaScript code that returns true if authenticated (selectors NOT found)
+    pub fn generate_auth_check_script(&self, auth_check_selectors: &[String]) -> String {
+        let selectors_json = serde_json::to_string(auth_check_selectors).unwrap_or_else(|_| "[]".to_string());
+
+        format!(
+            r#"
+(function() {{
+    try {{
+        const authCheckSelectors = {selectors};
+
+        // Check if any auth-required selector is present
+        for (let i = 0; i < authCheckSelectors.length; i++) {{
+            const selector = authCheckSelectors[i];
+            const element = document.querySelector(selector);
+            if (element) {{
+                console.log('Auth check: Found auth-required element with selector:', selector);
+                return {{ is_authenticated: false, requires_login: true }};
+            }}
+        }}
+
+        console.log('Auth check: No auth-required elements found');
+        return {{ is_authenticated: true, requires_login: false }};
+    }} catch (error) {{
+        console.error('Auth check error:', error);
+        return {{ is_authenticated: false, requires_login: true, error: error.message }};
+    }}
+}})();
+"#,
+            selectors = selectors_json
+        )
+    }
+
+    /// Creates a mock authentication status for testing
+    /// In production, this would execute the auth check script in a webview
+    pub fn create_auth_status_mock(&self, provider_id: ProviderId, is_authenticated: bool) -> AuthenticationStatus {
+        AuthenticationStatus {
+            provider_id,
+            is_authenticated,
+            last_checked: chrono::Utc::now().to_rfc3339(),
+            requires_login: !is_authenticated,
+        }
     }
 }
 

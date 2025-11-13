@@ -167,3 +167,20 @@ export const WebviewInfoSchema = z.object({
   data_path: z.string().optional(),
   data_store_id: z.string().optional(),
 });
+
+/**
+ * Authentication status for a provider
+ */
+export interface AuthenticationStatus {
+  provider_id: ProviderId;
+  is_authenticated: boolean;
+  last_checked: string;
+  requires_login: boolean;
+}
+
+export const AuthenticationStatusSchema = z.object({
+  provider_id: ProviderIdSchema,
+  is_authenticated: z.boolean(),
+  last_checked: z.string(),
+  requires_login: z.boolean(),
+});

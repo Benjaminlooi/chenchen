@@ -1,7 +1,7 @@
 // Contract tests for ProviderManager library
 // These tests verify the public API contract
 
-use chenchen_lib::providers::{ProviderManager, Provider};
+use chenchen_lib::providers::manager::ProviderManager;
 use chenchen_lib::types::ProviderId;
 
 #[test]
