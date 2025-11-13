@@ -1,6 +1,7 @@
 use std::sync::Mutex;
 use crate::providers::manager::ProviderManager;
 use crate::providers::config::ProviderConfigs;
+use crate::status::tracker::StatusTracker;
 use log::{info, warn};
 
 /// Application state shared across Tauri commands
@@ -10,6 +11,8 @@ pub struct AppState {
     pub provider_manager: Mutex<ProviderManager>,
     /// Provider selector configurations (CSS selectors, etc.)
     pub provider_configs: Option<ProviderConfigs>,
+    /// Status tracker for managing prompt submissions
+    pub status_tracker: StatusTracker,
 }
 
 impl AppState {
@@ -29,6 +32,7 @@ impl AppState {
         Self {
             provider_manager: Mutex::new(ProviderManager::new()),
             provider_configs,
+            status_tracker: StatusTracker::new(),
         }
     }
 }

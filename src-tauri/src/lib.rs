@@ -37,6 +37,8 @@ pub fn run() {
             commands::update_provider_selection,
             commands::get_layout_configuration,
             commands::create_provider_webview,
+            commands::submit_prompt,
+            commands::get_submission_status,
         ])
         .run(tauri::generate_context!())
         .unwrap_or_else(|err| {

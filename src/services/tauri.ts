@@ -38,6 +38,7 @@ class TauriService {
 
   /**
    * Submits a prompt to all selected providers
+   * Returns array of created submissions with their IDs
    */
   async submitPrompt(prompt: string): Promise<Submission[]> {
     return tauriInvoke<Submission[]>('submit_prompt', { prompt });
@@ -48,7 +49,7 @@ class TauriService {
    */
   async getSubmissionStatus(submissionId: string): Promise<Submission> {
     return tauriInvoke<Submission>('get_submission_status', {
-      submissionId,
+      submission_id: submissionId,
     });
   }
 
