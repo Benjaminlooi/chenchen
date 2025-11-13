@@ -1,0 +1,50 @@
+# Rust
+target/
+debug/
+release/
+*.rs.bk
+*.rlib
+*.prof*
+Cargo.lock
+
+# Node.js / TypeScript / JavaScript
+node_modules/
+dist/
+build/
+*.log
+.npm
+.eslintcache
+*.tsbuildinfo
+
+# Environment variables
+.env*
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Tauri
+src-tauri/target
+
+# Testing
+coverage/
+*.lcov
+
+# Build artifacts
+*.tmp
+*.temp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.swp
+*.swo
+*~
