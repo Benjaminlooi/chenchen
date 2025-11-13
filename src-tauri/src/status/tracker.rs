@@ -2,6 +2,7 @@
 
 use super::Submission;
 use crate::types::{CommandError, ProviderId, SubmissionErrorType};
+use crate::{log_info, log_warn};
 use std::collections::HashMap;
 use std::sync::Mutex;
 
@@ -108,8 +109,20 @@ impl StatusTracker {
 
         for (id, submission) in submissions.iter() {
             if submission.is_timed_out() {
+                log_warn!("Submission timed out", {
+                    "submission_id": id,
+                    "provider_id": format!("{:?}", submission.provider_id),
+                    "started_at": submission.started_at.clone().unwrap_or_else(|| "unknown".to_string()),
+                    "attempt_count": submission.attempt_count
+                });
                 timed_out.push(id.clone());
             }
+        }
+
+        if !timed_out.is_empty() {
+            log_warn!("Timeout check completed", {
+                "timed_out_count": timed_out.len()
+            });
         }
 
         Ok(timed_out)

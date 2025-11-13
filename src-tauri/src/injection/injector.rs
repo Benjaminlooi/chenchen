@@ -3,6 +3,7 @@
 
 use super::script_builder;
 use super::InjectionResult;
+use crate::{log_info, log_warn};
 
 /// Manages JavaScript injection into provider webviews
 pub struct Injector {}
@@ -31,7 +32,19 @@ impl Injector {
         submit_selectors: &[String],
         prompt: &str,
     ) -> String {
-        script_builder::generate_injection_script(input_selectors, submit_selectors, prompt)
+        log_info!("Preparing injection script", {
+            "input_selectors_count": input_selectors.len(),
+            "submit_selectors_count": submit_selectors.len(),
+            "prompt_length": prompt.len()
+        });
+
+        let script = script_builder::generate_injection_script(input_selectors, submit_selectors, prompt);
+
+        log_info!("Injection script generated", {
+            "script_length": script.len()
+        });
+
+        script
     }
 
     /// Executes an injection script in a webview
@@ -48,14 +61,26 @@ impl Injector {
         &self,
         _script: &str,
     ) -> Result<InjectionResult, String> {
+        log_info!("Executing injection script (mock)", {
+            "script_length": _script.len()
+        });
+
         // This is a mock implementation
         // The real implementation will be added when we integrate with Tauri webviews
-        Ok(InjectionResult {
+        let result = InjectionResult {
             success: true,
             error_message: None,
             element_found: true,
             submit_triggered: true,
-        })
+        };
+
+        log_info!("Injection execution completed", {
+            "success": result.success,
+            "element_found": result.element_found,
+            "submit_triggered": result.submit_triggered
+        });
+
+        Ok(result)
     }
 }
 
