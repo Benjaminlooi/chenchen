@@ -15,6 +15,7 @@ pub struct ProviderSelectorConfig {
     pub input_selectors: Vec<String>,
     pub submit_selectors: Vec<String>,
     pub auth_check_selectors: Vec<String>,
+    #[schemars(with = "String")]
     pub last_updated: DateTime<Utc>,
 }
 
