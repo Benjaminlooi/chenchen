@@ -31,6 +31,13 @@
       providers = providers.map((p) =>
         p.id === providerId ? updatedProvider : p
       );
+
+      // Dispatch event to notify parent component of provider changes
+      window.dispatchEvent(
+        new CustomEvent('providers-changed', {
+          detail: { providers },
+        })
+      );
     } catch (e) {
       error = e instanceof Error ? e.message : 'Failed to update provider selection';
 

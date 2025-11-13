@@ -4,6 +4,7 @@
 
 use crate::types::{CommandError, ProviderId};
 use crate::providers::Provider;
+use crate::layout::{LayoutConfiguration, calculator};
 use crate::state::AppState;
 use tauri::State;
 use log::{info, error};
@@ -54,8 +55,40 @@ pub fn update_provider_selection(
     Ok(provider)
 }
 
+/// Gets the layout configuration based on currently selected providers
+/// Calculates split-screen panel dimensions (1=full, 2=split, 3=grid)
+#[tauri::command]
+pub fn get_layout_configuration(state: State<AppState>) -> Result<LayoutConfiguration, CommandError> {
+    info!("Command: get_layout_configuration called");
+
+    let manager = state.provider_manager.lock().map_err(|e| {
+        error!("Failed to acquire lock on provider_manager: {}", e);
+        CommandError::internal("Failed to access provider state")
+    })?;
+
+    // Get only the selected providers
+    let selected_providers: Vec<ProviderId> = manager
+        .get_selected_providers()
+        .iter()
+        .map(|p| p.id)
+        .collect();
+
+    if selected_providers.is_empty() {
+        return Err(CommandError::validation("No providers selected"));
+    }
+
+    // Calculate layout based on selected providers
+    let layout = calculator::calculate_layout(&selected_providers);
+
+    info!(
+        "Calculated {:?} layout for {} providers",
+        layout.layout_type, layout.provider_count
+    );
+
+    Ok(layout)
+}
+
 // Future commands to be implemented:
-// - get_layout_configuration (US1)
 // - create_provider_webview (US4)
 // - submit_prompt (US1)
 // - get_submission_status (US3)

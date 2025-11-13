@@ -5,6 +5,7 @@ pub mod types;
 pub mod state;
 pub mod commands;
 pub mod providers;
+pub mod layout;
 
 use state::AppState;
 
@@ -31,6 +32,7 @@ pub fn run() {
             greet,
             commands::get_providers,
             commands::update_provider_selection,
+            commands::get_layout_configuration,
         ])
         .run(tauri::generate_context!())
         .unwrap_or_else(|err| {
