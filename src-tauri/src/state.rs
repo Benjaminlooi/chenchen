@@ -1,22 +1,23 @@
 use std::sync::Mutex;
+use crate::providers::ProviderManager;
 
 /// Application state shared across Tauri commands
 /// This state is managed by Tauri and accessible to all commands
-#[derive(Default)]
 pub struct AppState {
-    // Placeholder for future state management
-    // Will hold:
-    // - Provider configurations
-    // - Active submissions
-    // - Webview sessions
-    // - Layout configuration
-    _placeholder: Mutex<()>,
+    /// Provider manager for handling provider selection and configuration
+    pub provider_manager: Mutex<ProviderManager>,
 }
 
 impl AppState {
     pub fn new() -> Self {
         Self {
-            _placeholder: Mutex::new(()),
+            provider_manager: Mutex::new(ProviderManager::new()),
         }
+    }
+}
+
+impl Default for AppState {
+    fn default() -> Self {
+        Self::new()
     }
 }
