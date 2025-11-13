@@ -2,13 +2,16 @@
   import { onMount } from 'svelte';
   import ProviderSelector from '../components/ProviderSelector.svelte';
   import ProviderPanel from '../components/ProviderPanel.svelte';
+  import PromptInput from '../components/PromptInput.svelte';
+  import StatusDisplay from '../components/StatusDisplay.svelte';
   import { tauri } from '../services/tauri';
-  import type { LayoutConfiguration, Provider } from '../types';
+  import type { LayoutConfiguration, Provider, Submission } from '../types';
 
   // State
   let layout = $state<LayoutConfiguration | null>(null);
   let providers = $state<Provider[]>([]);
   let layoutError = $state<string | null>(null);
+  let submissions = $state<Submission[]>([]);
 
   // Load providers and layout on mount
   onMount(async () => {
@@ -58,6 +61,11 @@
     const provider = providers.find((p) => p.id === providerId);
     return provider?.name || providerId;
   }
+
+  // T124: Handle prompt submission
+  function handlePromptSubmitted(event: CustomEvent<{ submissions: Submission[] }>) {
+    submissions = event.detail.submissions;
+  }
 </script>
 
 <main class="container">
@@ -65,6 +73,14 @@
   <p class="subtitle">Send prompts to multiple LLMs simultaneously</p>
 
   <ProviderSelector />
+
+  <!-- T124: Prompt input component -->
+  <PromptInput on:submitted={handlePromptSubmitted} />
+
+  <!-- T124: Status display component -->
+  {#if submissions.length > 0}
+    <StatusDisplay {submissions} />
+  {/if}
 
   <!-- Provider panels in split-screen layout -->
   {#if layout && layout.panel_dimensions.length > 0}
@@ -83,9 +99,6 @@
       <p>Select one or more providers to begin</p>
     </div>
   {/if}
-
-  <!-- TODO: Add PromptInput component -->
-  <!-- TODO: Add StatusDisplay component -->
 </main>
 
 <style>

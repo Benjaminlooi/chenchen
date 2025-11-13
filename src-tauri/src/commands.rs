@@ -131,7 +131,107 @@ pub fn create_provider_webview(
     Ok(webview_info)
 }
 
+/// Submits a prompt to all selected providers
+/// Creates submissions, generates injection scripts, and tracks status
+///
+/// Returns the created submissions with their IDs for status tracking
+#[tauri::command]
+pub fn submit_prompt(
+    state: State<AppState>,
+    prompt: String,
+) -> Result<Vec<crate::status::Submission>, CommandError> {
+    use crate::injection::injector::Injector;
+
+    info!("Command: submit_prompt called with prompt length: {}", prompt.len());
+
+    // T109: Validate non-empty prompt
+    if prompt.trim().is_empty() {
+        return Err(CommandError::validation("Prompt cannot be empty"));
+    }
+
+    // Get selected providers
+    let manager = state.provider_manager.lock().map_err(|e| {
+        error!("Failed to acquire lock on provider_manager: {}", e);
+        CommandError::internal("Failed to access provider state")
+    })?;
+
+    let selected_providers = manager.get_selected_providers();
+
+    // T109: Validate at least 1 provider selected
+    if selected_providers.is_empty() {
+        return Err(CommandError::validation("At least one provider must be selected"));
+    }
+
+    info!("Submitting prompt to {} selected providers", selected_providers.len());
+
+    // Get provider configs
+    let provider_configs = state.provider_configs.as_ref().ok_or_else(|| {
+        error!("Provider configurations not loaded");
+        CommandError::internal("Provider configurations not available")
+    })?;
+
+    // Create submissions for each selected provider (T110)
+    let mut submissions = Vec::new();
+    let injector = Injector::new().map_err(|e| {
+        error!("Failed to create Injector: {}", e);
+        CommandError::internal("Failed to initialize injector")
+    })?;
+
+    for provider in selected_providers {
+        // Create submission entity
+        let submission = state.status_tracker.create_submission(
+            provider.id,
+            prompt.clone(),
+        )?;
+
+        info!("Created submission {} for provider {:?}", submission.id, provider.id);
+
+        // Get provider config for selectors
+        let config = provider_configs.get_config(provider.id)?;
+
+        // T112: Generate injection script
+        let script = injector.prepare_injection(
+            &config.input_selectors,
+            &config.submit_selectors,
+            &prompt,
+        );
+
+        info!(
+            "Generated injection script for provider {:?} ({} chars)",
+            provider.id,
+            script.len()
+        );
+
+        // TODO T111: Spawn async task for each submission (concurrent execution)
+        // TODO T112: Call Injector::execute() for each provider in async task
+        // TODO T113: Update Submission status based on injection result
+        // TODO T114: Emit submission_status_changed event after each status update
+        //
+        // For now, submissions remain in Pending state
+        // Actual webview.eval() execution will be implemented when webview handles are available
+
+        submissions.push(submission);
+    }
+
+    info!("Created {} submissions", submissions.len());
+
+    Ok(submissions)
+}
+
+/// Gets the status of a specific submission
+#[tauri::command]
+pub fn get_submission_status(
+    state: State<AppState>,
+    submission_id: String,
+) -> Result<crate::status::Submission, CommandError> {
+    info!("Command: get_submission_status called for {}", submission_id);
+
+    let submission = state.status_tracker.get_status(&submission_id)?;
+
+    info!("Retrieved submission status: {:?}", submission.status);
+
+    Ok(submission)
+}
+
 // Future commands to be implemented:
-// - submit_prompt (US1)
-// - get_submission_status (US3)
 // - check_authentication (US4)
