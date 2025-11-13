@@ -5,18 +5,19 @@ use schemars::JsonSchema;
 use crate::types::{CommandError, ProviderId};
 use std::collections::HashMap;
 use std::fs;
-use chrono::{DateTime, Utc};
 
 /// CSS selectors and configuration for locating elements on a provider's website
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct ProviderSelectorConfig {
     pub provider_id: ProviderId,
+    #[serde(rename = "config_version")]
     pub version: String,
     pub input_selectors: Vec<String>,
     pub submit_selectors: Vec<String>,
     pub auth_check_selectors: Vec<String>,
-    #[schemars(with = "String")]
-    pub last_updated: DateTime<Utc>,
+    pub last_updated: String, // ISO 8601 timestamp
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub notes: Option<String>,
 }
 
 /// Container for all provider configurations

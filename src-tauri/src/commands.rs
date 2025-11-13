@@ -6,7 +6,7 @@ use crate::types::{CommandError, ProviderId};
 use crate::providers::Provider;
 use crate::layout::{LayoutConfiguration, calculator};
 use crate::state::AppState;
-use tauri::State;
+use tauri::{State, Manager};
 use log::{info, error};
 
 /// Gets all available providers
@@ -88,8 +88,50 @@ pub fn get_layout_configuration(state: State<AppState>) -> Result<LayoutConfigur
     Ok(layout)
 }
 
+/// Creates a webview window for a provider with persistent session storage
+/// Returns information about the created webview including session configuration
+#[tauri::command]
+pub fn create_provider_webview(
+    app: tauri::AppHandle,
+    provider_id: ProviderId,
+) -> Result<crate::webview::WebviewInfo, CommandError> {
+    use crate::webview::manager::WebviewManager;
+
+    info!("Command: create_provider_webview called for {:?}", provider_id);
+
+    // Get app data directory
+    let app_data_dir = app.path().app_local_data_dir().map_err(|e| {
+        error!("Failed to get app local data directory: {}", e);
+        CommandError::internal("Failed to get app data directory")
+    })?;
+
+    // Create webview manager
+    let manager = WebviewManager::new(app_data_dir).map_err(|e| {
+        error!("Failed to create WebviewManager: {}", e);
+        CommandError::internal(format!("Failed to create webview manager: {}", e))
+    })?;
+
+    // Create webview info
+    let webview_info = manager.create_webview_info(provider_id);
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        // Ensure data directory exists
+        manager.ensure_data_directory(provider_id).map_err(|e| {
+            error!("Failed to create data directory: {}", e);
+            CommandError::internal("Failed to create webview data directory")
+        })?;
+    }
+
+    info!(
+        "Created webview info for {:?}: label={}, persistent={}",
+        provider_id, webview_info.label, webview_info.is_persistent
+    );
+
+    Ok(webview_info)
+}
+
 // Future commands to be implemented:
-// - create_provider_webview (US4)
 // - submit_prompt (US1)
 // - get_submission_status (US3)
 // - check_authentication (US4)

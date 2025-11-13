@@ -6,6 +6,7 @@ pub mod state;
 pub mod commands;
 pub mod providers;
 pub mod layout;
+pub mod webview;
 
 use state::AppState;
 
@@ -33,6 +34,7 @@ pub fn run() {
             commands::get_providers,
             commands::update_provider_selection,
             commands::get_layout_configuration,
+            commands::create_provider_webview,
         ])
         .run(tauri::generate_context!())
         .unwrap_or_else(|err| {
