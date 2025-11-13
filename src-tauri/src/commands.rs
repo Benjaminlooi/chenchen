@@ -6,22 +6,31 @@ use crate::types::{CommandError, ProviderId};
 use crate::providers::Provider;
 use crate::layout::{LayoutConfiguration, calculator};
 use crate::state::AppState;
-use tauri::{State, Manager};
+use crate::{log_info, log_error};
 use log::{info, error};
+use tauri::{State, Manager};
 
 /// Gets all available providers
 /// Returns the list of all 3 providers with their current state
 #[tauri::command]
 pub fn get_providers(state: State<AppState>) -> Result<Vec<Provider>, CommandError> {
-    info!("Command: get_providers called");
+    log_info!("Command: get_providers called", {
+        "command": "get_providers"
+    });
 
     let manager = state.provider_manager.lock().map_err(|e| {
-        error!("Failed to acquire lock on provider_manager: {}", e);
+        log_error!("Failed to acquire lock on provider_manager", {
+            "command": "get_providers",
+            "error": e.to_string()
+        });
         CommandError::internal("Failed to access provider state")
     })?;
 
     let providers = manager.get_all_providers().to_vec();
-    info!("Returning {} providers", providers.len());
+    log_info!("Returning providers", {
+        "command": "get_providers",
+        "provider_count": providers.len()
+    });
 
     Ok(providers)
 }
@@ -35,22 +44,27 @@ pub fn update_provider_selection(
     provider_id: ProviderId,
     is_selected: bool,
 ) -> Result<Provider, CommandError> {
-    info!(
-        "Command: update_provider_selection called for {:?}, is_selected: {}",
-        provider_id, is_selected
-    );
+    log_info!("Command: update_provider_selection called", {
+        "command": "update_provider_selection",
+        "provider_id": format!("{:?}", provider_id),
+        "is_selected": is_selected
+    });
 
     let mut manager = state.provider_manager.lock().map_err(|e| {
-        error!("Failed to acquire lock on provider_manager: {}", e);
+        log_error!("Failed to acquire lock on provider_manager", {
+            "command": "update_provider_selection",
+            "error": e.to_string()
+        });
         CommandError::internal("Failed to access provider state")
     })?;
 
     let provider = manager.update_provider_selection(provider_id, is_selected)?;
 
-    info!(
-        "Provider {:?} selection updated successfully to: {}",
-        provider_id, is_selected
-    );
+    log_info!("Provider selection updated successfully", {
+        "command": "update_provider_selection",
+        "provider_id": format!("{:?}", provider_id),
+        "is_selected": is_selected
+    });
 
     Ok(provider)
 }
@@ -142,7 +156,10 @@ pub fn submit_prompt(
 ) -> Result<Vec<crate::status::Submission>, CommandError> {
     use crate::injection::injector::Injector;
 
-    info!("Command: submit_prompt called with prompt length: {}", prompt.len());
+    log_info!("Command: submit_prompt called", {
+        "command": "submit_prompt",
+        "prompt_length": prompt.len()
+    });
 
     // T109: Validate non-empty prompt
     if prompt.trim().is_empty() {

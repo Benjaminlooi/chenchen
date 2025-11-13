@@ -9,6 +9,7 @@ pub mod layout;
 pub mod webview;
 pub mod injection;
 pub mod status;
+pub mod logging;
 
 use state::AppState;
 
