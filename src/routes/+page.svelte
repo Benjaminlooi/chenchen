@@ -6,12 +6,16 @@
   import StatusDisplay from '../components/StatusDisplay.svelte';
   import { tauri } from '../services/tauri';
   import type { LayoutConfiguration, Provider, Submission } from '../types';
+  import '../app.css'; // Import global styles
 
   // State
   let layout = $state<LayoutConfiguration | null>(null);
   let providers = $state<Provider[]>([]);
   let layoutError = $state<string | null>(null);
   let submissions = $state<Submission[]>([]);
+
+  // Debounce timer for layout recalculation (T152: Performance optimization)
+  let layoutDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   // Load providers and layout on mount
   onMount(() => {
@@ -52,9 +56,21 @@
     }
   }
 
+  // Debounced layout update for performance (T152)
+  function debouncedUpdateLayout() {
+    if (layoutDebounceTimer) {
+      clearTimeout(layoutDebounceTimer);
+    }
+
+    layoutDebounceTimer = setTimeout(() => {
+      updateLayout();
+      layoutDebounceTimer = null;
+    }, 150); // 150ms debounce delay
+  }
+
   function handleProvidersChanged(event: CustomEvent) {
     providers = event.detail.providers;
-    updateLayout();
+    debouncedUpdateLayout();
   }
 
   function getProviderName(providerId: string): string {
