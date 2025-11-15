@@ -1,8 +1,8 @@
 // Provider selector configuration loading and management
 
-use serde::{Deserialize, Serialize};
-use schemars::JsonSchema;
 use crate::types::{CommandError, ProviderId};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 
@@ -99,14 +99,15 @@ impl ProviderConfigs {
     }
 
     /// Gets the configuration for a specific provider
-    pub fn get_config(&self, provider_id: ProviderId) -> Result<&ProviderSelectorConfig, CommandError> {
-        self.providers
-            .get(provider_id.as_str())
-            .ok_or_else(|| {
-                CommandError::not_found(format!(
-                    "Configuration not found for provider {:?}",
-                    provider_id
-                ))
-            })
+    pub fn get_config(
+        &self,
+        provider_id: ProviderId,
+    ) -> Result<&ProviderSelectorConfig, CommandError> {
+        self.providers.get(provider_id.as_str()).ok_or_else(|| {
+            CommandError::not_found(format!(
+                "Configuration not found for provider {:?}",
+                provider_id
+            ))
+        })
     }
 }

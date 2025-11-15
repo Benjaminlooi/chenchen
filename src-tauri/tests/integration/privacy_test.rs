@@ -30,10 +30,7 @@ fn test_no_credential_storage_in_app_data_directory() {
     ];
 
     // Recursively search all files in app data directory
-    let files_with_credentials = search_directory_for_patterns(
-        &app_data_dir,
-        &credential_patterns
-    );
+    let files_with_credentials = search_directory_for_patterns(&app_data_dir, &credential_patterns);
 
     assert!(
         files_with_credentials.is_empty(),
@@ -58,18 +55,10 @@ fn test_no_prompt_history_retained_after_restart() {
     ];
 
     // Search for any files that might contain prompt history
-    let history_patterns = vec![
-        "history",
-        "prompts",
-        "queries",
-        "user_input",
-    ];
+    let history_patterns = vec!["history", "prompts", "queries", "user_input"];
 
     // Search for files with history-like names
-    let history_files = search_directory_for_file_patterns(
-        &app_data_dir,
-        &history_patterns
-    );
+    let history_files = search_directory_for_file_patterns(&app_data_dir, &history_patterns);
 
     assert!(
         history_files.is_empty(),
@@ -79,10 +68,7 @@ fn test_no_prompt_history_retained_after_restart() {
 
     // Also verify prompts are not stored in any files
     for prompt in &test_prompts {
-        let files_containing_prompt = search_directory_for_content(
-            &app_data_dir,
-            prompt
-        );
+        let files_containing_prompt = search_directory_for_content(&app_data_dir, prompt);
 
         assert!(
             files_containing_prompt.is_empty(),
@@ -105,17 +91,9 @@ fn test_webview_data_only_contains_session_cookies() {
     fs::create_dir_all(&webview_dir).expect("Failed to create webview dir");
 
     // Patterns that should NOT exist in webview directories
-    let forbidden_patterns = vec![
-        "password",
-        "secret",
-        "api_key",
-        "prompt_history",
-    ];
+    let forbidden_patterns = vec!["password", "secret", "api_key", "prompt_history"];
 
-    let forbidden_files = search_directory_for_patterns(
-        &webview_dir,
-        &forbidden_patterns
-    );
+    let forbidden_files = search_directory_for_patterns(&webview_dir, &forbidden_patterns);
 
     assert!(
         forbidden_files.is_empty(),
@@ -126,10 +104,7 @@ fn test_webview_data_only_contains_session_cookies() {
 
 // Helper functions
 
-fn search_directory_for_patterns(
-    dir: &PathBuf,
-    patterns: &[&str],
-) -> Vec<PathBuf> {
+fn search_directory_for_patterns(dir: &PathBuf, patterns: &[&str]) -> Vec<PathBuf> {
     let mut matches = Vec::new();
 
     if !dir.exists() {
@@ -161,10 +136,7 @@ fn search_directory_for_patterns(
     matches
 }
 
-fn search_directory_for_file_patterns(
-    dir: &PathBuf,
-    patterns: &[&str],
-) -> Vec<PathBuf> {
+fn search_directory_for_file_patterns(dir: &PathBuf, patterns: &[&str]) -> Vec<PathBuf> {
     let mut matches = Vec::new();
 
     if !dir.exists() {
@@ -174,7 +146,8 @@ fn search_directory_for_file_patterns(
     if let Ok(entries) = fs::read_dir(dir) {
         for entry in entries.flatten() {
             let path = entry.path();
-            let filename = path.file_name()
+            let filename = path
+                .file_name()
                 .and_then(|n| n.to_str())
                 .unwrap_or("")
                 .to_lowercase();
@@ -195,10 +168,7 @@ fn search_directory_for_file_patterns(
     matches
 }
 
-fn search_directory_for_content(
-    dir: &PathBuf,
-    search_term: &str,
-) -> Vec<PathBuf> {
+fn search_directory_for_content(dir: &PathBuf, search_term: &str) -> Vec<PathBuf> {
     let mut matches = Vec::new();
 
     if !dir.exists() {

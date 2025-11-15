@@ -2,7 +2,7 @@
 // Provides strongly-typed wrappers around the Tauri invoke API
 
 import { invoke as tauriInvoke } from '@tauri-apps/api/core';
-import type { Provider, LayoutConfiguration, Submission, WebviewInfo, AuthenticationStatus } from '../types';
+import type { Provider, LayoutConfiguration, Submission } from '../types';
 import { ProviderId } from '../types';
 
 /**
@@ -50,24 +50,6 @@ class TauriService {
   async getSubmissionStatus(submissionId: string): Promise<Submission> {
     return tauriInvoke<Submission>('get_submission_status', {
       submission_id: submissionId,
-    });
-  }
-
-  /**
-   * Creates a provider webview with persistent session
-   */
-  async createProviderWebview(providerId: ProviderId): Promise<WebviewInfo> {
-    return tauriInvoke<WebviewInfo>('create_provider_webview', { providerId });
-  }
-
-  /**
-   * Checks if a provider webview is authenticated
-   */
-  async checkAuthentication(
-    providerId: ProviderId
-  ): Promise<AuthenticationStatus> {
-    return tauriInvoke<AuthenticationStatus>('check_authentication', {
-      provider_id: providerId
     });
   }
 }

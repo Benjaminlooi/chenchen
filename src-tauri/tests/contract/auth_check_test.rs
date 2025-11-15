@@ -1,8 +1,8 @@
 // Contract tests for authentication detection
 // Tests WebviewManager's authentication check script generation
 
-use chenchen_lib::webview::manager::WebviewManager;
 use chenchen_lib::types::ProviderId;
+use chenchen_lib::webview::manager::WebviewManager;
 use std::path::PathBuf;
 
 #[test]

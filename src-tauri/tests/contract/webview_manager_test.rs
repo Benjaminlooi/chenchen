@@ -51,7 +51,7 @@ fn test_create_webview_info() {
     let webview_info = manager.create_webview_info(ProviderId::Claude);
 
     assert_eq!(webview_info.provider_id, ProviderId::Claude);
-    assert_eq!(webview_info.label, "claude-webview");
+    assert_eq!(webview_info.label, "webviews/Claude");
     assert_eq!(webview_info.url, "https://claude.ai/");
     assert_eq!(webview_info.is_persistent, true);
 

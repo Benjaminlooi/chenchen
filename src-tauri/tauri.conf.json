@@ -12,11 +12,12 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "ChenChen - Multi-LLM Prompt",
         "width": 1200,
-        "height": 800,
+        "height": 900,
         "minWidth": 800,
-        "minHeight": 600
+        "minHeight": 700
       }
     ],
     "withGlobalTauri": true,

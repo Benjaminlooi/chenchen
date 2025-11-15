@@ -1,15 +1,14 @@
-use log::{info, error};
+use log::{error, info};
 
 // Module declarations
-pub mod types;
-pub mod state;
 pub mod commands;
-pub mod providers;
-pub mod layout;
-pub mod webview;
 pub mod injection;
-pub mod status;
+pub mod layout;
 pub mod logging;
+pub mod providers;
+pub mod state;
+pub mod status;
+pub mod types;
 
 use state::AppState;
 
@@ -37,10 +36,8 @@ pub fn run() {
             commands::get_providers,
             commands::update_provider_selection,
             commands::get_layout_configuration,
-            commands::create_provider_webview,
             commands::submit_prompt,
             commands::get_submission_status,
-            commands::check_authentication,
         ])
         .run(tauri::generate_context!())
         .unwrap_or_else(|err| {

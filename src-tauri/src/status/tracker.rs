@@ -1,8 +1,8 @@
 // StatusTracker for managing submission states and emitting events
 
 use super::Submission;
+use crate::log_warn;
 use crate::types::{CommandError, ProviderId, SubmissionErrorType};
-use crate::{log_info, log_warn};
 use std::collections::HashMap;
 use std::sync::Mutex;
 
@@ -28,9 +28,10 @@ impl StatusTracker {
         let submission = Submission::new(provider_id, prompt_content);
         let id = submission.id.clone();
 
-        let mut submissions = self.submissions.lock().map_err(|e| {
-            CommandError::internal(format!("Failed to acquire lock: {}", e))
-        })?;
+        let mut submissions = self
+            .submissions
+            .lock()
+            .map_err(|e| CommandError::internal(format!("Failed to acquire lock: {}", e)))?;
 
         submissions.insert(id, submission.clone());
 
@@ -39,16 +40,14 @@ impl StatusTracker {
 
     /// Gets the current status of a submission
     pub fn get_status(&self, submission_id: &str) -> Result<Submission, CommandError> {
-        let submissions = self.submissions.lock().map_err(|e| {
-            CommandError::internal(format!("Failed to acquire lock: {}", e))
-        })?;
+        let submissions = self
+            .submissions
+            .lock()
+            .map_err(|e| CommandError::internal(format!("Failed to acquire lock: {}", e)))?;
 
-        submissions
-            .get(submission_id)
-            .cloned()
-            .ok_or_else(|| {
-                CommandError::not_found(format!("Submission not found: {}", submission_id))
-            })
+        submissions.get(submission_id).cloned().ok_or_else(|| {
+            CommandError::not_found(format!("Submission not found: {}", submission_id))
+        })
     }
 
     /// Updates submission status and emits event
@@ -59,19 +58,17 @@ impl StatusTracker {
         submission_id: &str,
         update_fn: impl FnOnce(&mut Submission) -> Result<(), String>,
     ) -> Result<Submission, CommandError> {
-        let mut submissions = self.submissions.lock().map_err(|e| {
-            CommandError::internal(format!("Failed to acquire lock: {}", e))
+        let mut submissions = self
+            .submissions
+            .lock()
+            .map_err(|e| CommandError::internal(format!("Failed to acquire lock: {}", e)))?;
+
+        let submission = submissions.get_mut(submission_id).ok_or_else(|| {
+            CommandError::not_found(format!("Submission not found: {}", submission_id))
         })?;
 
-        let submission = submissions
-            .get_mut(submission_id)
-            .ok_or_else(|| {
-                CommandError::not_found(format!("Submission not found: {}", submission_id))
-            })?;
-
-        update_fn(submission).map_err(|e| {
-            CommandError::internal(format!("Failed to update submission: {}", e))
-        })?;
+        update_fn(submission)
+            .map_err(|e| CommandError::internal(format!("Failed to update submission: {}", e)))?;
 
         // TODO: Emit submission_status_changed event
         // app.emit_all("submission_status_changed", submission.clone())?;
@@ -103,9 +100,10 @@ impl StatusTracker {
     pub fn check_timeouts(&self) -> Result<Vec<String>, CommandError> {
         let mut timed_out = Vec::new();
 
-        let submissions = self.submissions.lock().map_err(|e| {
-            CommandError::internal(format!("Failed to acquire lock: {}", e))
-        })?;
+        let submissions = self
+            .submissions
+            .lock()
+            .map_err(|e| CommandError::internal(format!("Failed to acquire lock: {}", e)))?;
 
         for (id, submission) in submissions.iter() {
             if submission.is_timed_out() {

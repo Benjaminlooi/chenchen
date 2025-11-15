@@ -5,6 +5,7 @@
   import PromptInput from '../components/PromptInput.svelte';
   import StatusDisplay from '../components/StatusDisplay.svelte';
   import { tauri } from '../services/tauri';
+  import { syncProviderWebviews, type PanelBounds } from '../services/providerWebviews';
   import type { LayoutConfiguration, Provider, Submission } from '../types';
   import '../app.css'; // Import global styles
 
@@ -13,19 +14,25 @@
   let providers = $state<Provider[]>([]);
   let layoutError = $state<string | null>(null);
   let submissions = $state<Submission[]>([]);
+  let layoutContainerElement = $state<HTMLElement | null>(null);
 
   // Debounce timer for layout recalculation (T152: Performance optimization)
   let layoutDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  let scrollDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   // Load providers and layout on mount
-  onMount(() => {
+  onMount(async () => {
     loadProvidersAndLayout();
 
     // Set up custom event listener for provider changes
     window.addEventListener('providers-changed', handleProvidersChanged as EventListener);
 
+    // Update webview positions on scroll
+    window.addEventListener('scroll', handleScroll);
+
     return () => {
       window.removeEventListener('providers-changed', handleProvidersChanged as EventListener);
+      window.removeEventListener('scroll', handleScroll);
     };
   });
 
@@ -48,6 +55,7 @@
 
     try {
       layout = await tauri.getLayoutConfiguration();
+      console.log('Layout configuration from backend:', layout);
       layoutError = null;
     } catch (error) {
       console.error('Failed to get layout configuration:', error);
@@ -73,34 +81,95 @@
     debouncedUpdateLayout();
   }
 
+  // Update webview positions when scrolling
+  function handleScroll() {
+    if (scrollDebounceTimer) {
+      clearTimeout(scrollDebounceTimer);
+    }
+
+    scrollDebounceTimer = setTimeout(() => {
+      updateWebviewPositions();
+      scrollDebounceTimer = null;
+    }, 16); // ~60fps
+  }
+
+  function updateWebviewPositions() {
+    if (layout && layout.panel_dimensions.length > 0 && layoutContainerElement) {
+      const bounds = calculatePanelBounds();
+      if (bounds.length > 0) {
+        syncProviderWebviews(bounds).catch((error) => {
+          console.error('Failed to update webview positions:', error);
+        });
+      }
+    }
+  }
+
   function getProviderName(providerId: string): string {
     const provider = providers.find((p) => p.id === providerId);
     return provider?.name || providerId;
   }
 
   // T124: Handle prompt submission
-  function handlePromptSubmitted(event: CustomEvent<{ submissions: Submission[] }>) {
+  async function handlePromptSubmitted(event: CustomEvent<{ submissions: Submission[] }>) {
     submissions = event.detail.submissions;
   }
+
+  // Convert percentage-based PanelDimensions to pixel-based PanelBounds
+  function calculatePanelBounds(): PanelBounds[] {
+    if (!layout || !layoutContainerElement) {
+      return [];
+    }
+
+    const rect = layoutContainerElement.getBoundingClientRect();
+    const containerWidth = rect.width;
+    const containerHeight = rect.height;
+
+    // rect.x and rect.y give us the offset from the window's top-left
+    const containerOffsetX = rect.x;
+    const containerOffsetY = rect.y;
+
+    return layout.panel_dimensions.map((dimension) => ({
+      providerId: dimension.provider_id,
+      x: containerOffsetX + (dimension.x * containerWidth),
+      y: containerOffsetY + (dimension.y * containerHeight),
+      width: dimension.width * containerWidth,
+      height: dimension.height * containerHeight,
+    }));
+  }
+
+  // Sync webviews when layout changes (providers selected/deselected)
+  $effect(() => {
+    if (layout && layout.panel_dimensions.length > 0 && layoutContainerElement) {
+      const bounds = calculatePanelBounds();
+      if (bounds.length > 0) {
+        syncProviderWebviews(bounds)
+          .then(() => {
+            console.log('Provider webviews synced successfully');
+          })
+          .catch((error) => {
+            console.error('Failed to sync provider webviews:', error);
+          });
+      }
+    }
+  });
 </script>
 
 <main class="container">
-  <h1>ChenChen - Multi-LLM Prompt</h1>
-  <p class="subtitle">Send prompts to multiple LLMs simultaneously</p>
+  <div class="header">
+    <h1>ChenChen</h1>
+    <ProviderSelector />
+  </div>
 
-  <ProviderSelector />
-
-  <!-- T124: Prompt input component -->
-  <PromptInput on:submitted={handlePromptSubmitted} />
-
-  <!-- T124: Status display component -->
-  {#if submissions.length > 0}
-    <StatusDisplay {submissions} />
-  {/if}
+  <div class="controls">
+    <PromptInput on:submitted={handlePromptSubmitted} />
+    {#if submissions.length > 0}
+      <StatusDisplay {submissions} />
+    {/if}
+  </div>
 
   <!-- Provider panels in split-screen layout -->
   {#if layout && layout.panel_dimensions.length > 0}
-    <div class="layout-container">
+    <div class="layout-container" bind:this={layoutContainerElement}>
       {#each layout.panel_dimensions as dimension (dimension.provider_id)}
         <ProviderPanel
           {dimension}
@@ -112,7 +181,7 @@
     <div class="layout-error">{layoutError}</div>
   {:else}
     <div class="layout-placeholder">
-      <p>Select one or more providers to begin</p>
+      <p>Select providers to begin</p>
     </div>
   {/if}
 </main>
@@ -130,32 +199,42 @@
   }
 
   .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem;
+    background: #f8f8f8;
+    border-radius: 4px;
   }
 
   h1 {
-    text-align: center;
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.25rem;
+    margin: 0;
     color: #333;
+    white-space: nowrap;
   }
 
-  .subtitle {
-    text-align: center;
-    color: #666;
-    margin-bottom: 2rem;
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
   .layout-container {
     position: relative;
-    width: 100%;
-    height: 600px;
+    flex: 1;
+    min-height: 400px;
     background: #fff;
     border: 2px solid #ddd;
     border-radius: 8px;
-    margin-top: 2rem;
     overflow: hidden;
   }
 

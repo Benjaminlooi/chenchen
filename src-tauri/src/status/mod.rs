@@ -1,10 +1,10 @@
 // Status tracking module for prompt submissions
 // Manages submission state machine and timeout/retry logic
 
-use serde::{Deserialize, Serialize};
+use crate::types::{ProviderId, SubmissionErrorType, SubmissionStatus};
 use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use crate::types::{ProviderId, SubmissionStatus, SubmissionErrorType};
 
 /// Represents the prompt text being submitted
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
@@ -61,10 +61,7 @@ impl Submission {
     /// Transitions to Success state
     pub fn succeed(&mut self) -> Result<(), String> {
         if self.status != SubmissionStatus::InProgress {
-            return Err(format!(
-                "Cannot succeed from {:?} state",
-                self.status
-            ));
+            return Err(format!("Cannot succeed from {:?} state", self.status));
         }
 
         self.status = SubmissionStatus::Success;
@@ -73,12 +70,14 @@ impl Submission {
     }
 
     /// Transitions to Failed or Retrying state based on error type
-    pub fn fail(&mut self, error_type: SubmissionErrorType, error_message: String) -> Result<(), String> {
-        if self.status != SubmissionStatus::InProgress && self.status != SubmissionStatus::Retrying {
-            return Err(format!(
-                "Cannot fail from {:?} state",
-                self.status
-            ));
+    pub fn fail(
+        &mut self,
+        error_type: SubmissionErrorType,
+        error_message: String,
+    ) -> Result<(), String> {
+        if self.status != SubmissionStatus::InProgress && self.status != SubmissionStatus::Retrying
+        {
+            return Err(format!("Cannot fail from {:?} state", self.status));
         }
 
         // Check if error type should trigger retry
@@ -118,8 +117,8 @@ fn current_timestamp() -> String {
 fn time_since(timestamp: &str) -> Result<f64, String> {
     use chrono::DateTime;
 
-    let then = DateTime::parse_from_rfc3339(timestamp)
-        .map_err(|e| format!("Invalid timestamp: {}", e))?;
+    let then =
+        DateTime::parse_from_rfc3339(timestamp).map_err(|e| format!("Invalid timestamp: {}", e))?;
 
     let now = chrono::Utc::now();
     let duration = now.signed_duration_since(then);
@@ -172,10 +171,7 @@ mod tests {
         let mut submission = Submission::new(ProviderId::ChatGPT, "Test".to_string());
 
         submission.start().unwrap();
-        let result = submission.fail(
-            SubmissionErrorType::Timeout,
-            "Timed out".to_string(),
-        );
+        let result = submission.fail(SubmissionErrorType::Timeout, "Timed out".to_string());
 
         assert!(result.is_ok());
         assert_eq!(submission.status, SubmissionStatus::Retrying);

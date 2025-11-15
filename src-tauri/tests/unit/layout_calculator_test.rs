@@ -1,8 +1,8 @@
 // Unit tests for layout calculation logic
 // Tests the calculate_layout() function with different provider counts
 
-use chenchen_lib::layout::{LayoutType, LayoutConfiguration};
 use chenchen_lib::layout::calculator::calculate_layout;
+use chenchen_lib::layout::{LayoutConfiguration, LayoutType};
 use chenchen_lib::types::ProviderId;
 
 #[test]

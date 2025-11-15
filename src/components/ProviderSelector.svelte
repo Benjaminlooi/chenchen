@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { tauri } from '../services/tauri';
+  import { focusProviderWebview } from '../services/providerWebviews';
   import type { Provider, AuthenticationStatus } from '../types';
   import { ProviderId } from '../types';
 
@@ -10,6 +11,7 @@
   let loading = true;
   let error: string | null = null;
   let checkingAuth = false;
+  let openingWebview: ProviderId | null = null;
 
   // Load providers on component mount
   onMount(async () => {
@@ -83,17 +85,23 @@
 
   // Open provider login page
   async function handleLoginClick(providerId: ProviderId) {
-    try {
-      // Create a webview for the provider
-      const webviewInfo = await tauri.createProviderWebview(providerId);
-      console.log('Created webview for login:', webviewInfo);
+    error = null;
+    openingWebview = providerId;
 
-      // TODO: Actually open the webview window
-      // For now, open in external browser
-      window.open(providers.find((p) => p.id === providerId)?.url, '_blank');
+    try {
+      const provider = providers.find((p) => p.id === providerId);
+      if (provider && !provider.is_selected) {
+        await handleProviderToggle(providerId, true);
+      }
+
+      await focusProviderWebview(providerId);
     } catch (e) {
-      console.error('Failed to open login page:', e);
-      error = e instanceof Error ? e.message : 'Failed to open login page';
+      console.error('Failed to focus provider webview:', e);
+      error = e instanceof Error ? e.message : 'Failed to focus provider webview';
+    } finally {
+      if (openingWebview === providerId) {
+        openingWebview = null;
+      }
     }
   }
 
@@ -130,7 +138,7 @@
             <input
               type="checkbox"
               checked={provider.is_selected}
-              on:change={(e) =>
+              onchange={(e) =>
                 handleProviderToggle(provider.id, e.currentTarget.checked)}
               data-testid={`provider-checkbox-${provider.id}`}
             />
@@ -145,10 +153,15 @@
             {#if authStatus && authStatus.requires_login}
               <button
                 class="login-button"
-                on:click={() => handleLoginClick(provider.id)}
+                onclick={() => handleLoginClick(provider.id)}
                 title="Login required to use this provider"
+                disabled={openingWebview === provider.id}
               >
-                🔒 Login Required
+                {#if openingWebview === provider.id}
+                  Opening Webview...
+                {:else}
+                  🔒 Login Required
+                {/if}
               </button>
             {:else if authStatus && authStatus.is_authenticated}
               <span class="auth-badge auth-ok" title="Authenticated">✓</span>

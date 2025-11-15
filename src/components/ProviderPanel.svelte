@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { PanelDimension, ProviderId } from '../types';
 
-  // Props
   interface Props {
     dimension: PanelDimension;
     providerName: string;
@@ -9,16 +8,10 @@
 
   let { dimension, providerName }: Props = $props();
 
-  /**
-   * Converts percentage dimensions (0.0-1.0) to CSS percentages
-   */
   function toPercent(value: number): string {
     return `${(value * 100).toFixed(2)}%`;
   }
 
-  /**
-   * Get background color for each provider
-   */
   function getProviderColor(providerId: ProviderId): string {
     switch (providerId) {
       case 'ChatGPT':
@@ -33,7 +26,6 @@
   }
 </script>
 
-<!-- Provider panel with absolute positioning based on layout dimensions -->
 <div
   class="provider-panel"
   style:left={toPercent(dimension.x)}
@@ -48,10 +40,18 @@
   </div>
 
   <div class="panel-content">
-    <!-- Placeholder for provider webview/iframe -->
-    <div class="webview-placeholder">
-      <p>Provider webview will be loaded here</p>
-      <p class="hint">URL: {dimension.provider_id}</p>
+    <!-- Debug border to visualize panel bounds -->
+    <div class="debug-border"></div>
+    <div class="webview-placeholder" aria-hidden="true">
+      <p>
+        The {providerName} site renders directly inside this area. If it fails to
+        appear, make sure you're logged in.
+      </p>
+      <p class="hint">This panel is fully interactive once the webview loads.</p>
+      <p class="debug-info">
+        Position: {toPercent(dimension.x)}, {toPercent(dimension.y)}<br/>
+        Size: {toPercent(dimension.width)} × {toPercent(dimension.height)}
+      </p>
     </div>
   </div>
 </div>
@@ -87,11 +87,14 @@
     align-items: center;
     justify-content: center;
     background: #f9f9f9;
+    position: relative;
   }
 
   .webview-placeholder {
     text-align: center;
     color: #666;
+    padding: 0 1rem;
+    pointer-events: none;
   }
 
   .webview-placeholder p {
@@ -99,9 +102,25 @@
   }
 
   .hint {
-    font-size: 0.875rem;
-    font-style: italic;
+    font-size: 0.85rem;
+    color: #888;
+  }
+
+  .debug-info {
+    font-size: 0.75rem;
     color: #999;
+    font-family: monospace;
+  }
+
+  .debug-border {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 3px dashed rgba(255, 0, 0, 0.5);
+    pointer-events: none;
+    z-index: 9999;
   }
 
   @media (prefers-color-scheme: dark) {
@@ -119,7 +138,7 @@
     }
 
     .hint {
-      color: #888;
+      color: #aaa;
     }
   }
 </style>
