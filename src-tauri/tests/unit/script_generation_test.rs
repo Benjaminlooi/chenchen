@@ -13,11 +13,8 @@ fn test_generate_injection_script_includes_input_selector_logic() {
     let submit_selectors = vec!["button[data-testid='send-button']".to_string()];
     let prompt = "Test prompt";
 
-    let script = script_builder::generate_injection_script(
-        &input_selectors,
-        &submit_selectors,
-        prompt,
-    );
+    let script =
+        script_builder::generate_injection_script(&input_selectors, &submit_selectors, prompt);
 
     // Verify script contains input selectors
     assert!(
@@ -58,11 +55,8 @@ fn test_generate_injection_script_includes_submit_button_trigger() {
     ];
     let prompt = "Test";
 
-    let script = script_builder::generate_injection_script(
-        &input_selectors,
-        &submit_selectors,
-        prompt,
-    );
+    let script =
+        script_builder::generate_injection_script(&input_selectors, &submit_selectors, prompt);
 
     // Verify script contains submit selectors
     assert!(
@@ -88,15 +82,15 @@ fn test_generate_injection_script_handles_element_not_found() {
     let submit_selectors = vec!["button".to_string()];
     let prompt = "Test";
 
-    let script = script_builder::generate_injection_script(
-        &input_selectors,
-        &submit_selectors,
-        prompt,
-    );
+    let script =
+        script_builder::generate_injection_script(&input_selectors, &submit_selectors, prompt);
 
     // Verify script has error handling
     assert!(
-        script.contains("null") || script.contains("!") || script.contains("error") || script.contains("Error"),
+        script.contains("null")
+            || script.contains("!")
+            || script.contains("error")
+            || script.contains("Error"),
         "Script should check for null/missing elements"
     );
 
@@ -118,11 +112,8 @@ fn test_generate_injection_script_tries_selectors_in_order() {
     let submit_selectors = vec!["button".to_string()];
     let prompt = "Test";
 
-    let script = script_builder::generate_injection_script(
-        &input_selectors,
-        &submit_selectors,
-        prompt,
-    );
+    let script =
+        script_builder::generate_injection_script(&input_selectors, &submit_selectors, prompt);
 
     // Verify all selectors appear in order
     let selector1_pos = script.find("selector1");
@@ -151,11 +142,8 @@ fn test_generate_injection_script_escapes_special_characters() {
     let submit_selectors = vec!["button".to_string()];
     let prompt = r#"Test with "quotes" and 'apostrophes' and \backslashes"#;
 
-    let script = script_builder::generate_injection_script(
-        &input_selectors,
-        &submit_selectors,
-        prompt,
-    );
+    let script =
+        script_builder::generate_injection_script(&input_selectors, &submit_selectors, prompt);
 
     // Script should be valid JavaScript (no syntax errors from unescaped quotes)
     // We can't run it, but we can check it doesn't have obvious issues

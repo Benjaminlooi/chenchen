@@ -3,7 +3,7 @@
 
 use super::script_builder;
 use super::InjectionResult;
-use crate::{log_info, log_warn};
+use crate::log_info;
 
 /// Manages JavaScript injection into provider webviews
 pub struct Injector {}
@@ -38,7 +38,8 @@ impl Injector {
             "prompt_length": prompt.len()
         });
 
-        let script = script_builder::generate_injection_script(input_selectors, submit_selectors, prompt);
+        let script =
+            script_builder::generate_injection_script(input_selectors, submit_selectors, prompt);
 
         log_info!("Injection script generated", {
             "script_length": script.len()
@@ -57,10 +58,7 @@ impl Injector {
     /// 4. Handle timeouts (30 seconds per FR-007)
     ///
     /// For now, it returns a mock result for testing purposes.
-    pub fn execute_mock(
-        &self,
-        _script: &str,
-    ) -> Result<InjectionResult, String> {
+    pub fn execute_mock(&self, _script: &str) -> Result<InjectionResult, String> {
         log_info!("Executing injection script (mock)", {
             "script_length": _script.len()
         });

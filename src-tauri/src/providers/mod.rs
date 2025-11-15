@@ -1,12 +1,12 @@
 // Provider management library
 // Handles provider selection, configuration, and state
 
-pub mod manager;
 pub mod config;
+pub mod manager;
 
-use serde::{Deserialize, Serialize};
-use schemars::JsonSchema;
 use crate::types::ProviderId;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
 /// Represents an LLM provider with its configuration and state
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]

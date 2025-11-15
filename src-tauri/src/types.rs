@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
 /// Provider identifier enum for the three supported LLM providers
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
@@ -51,7 +51,10 @@ pub enum SubmissionErrorType {
 impl SubmissionErrorType {
     /// Returns true if this error type should trigger a retry
     pub fn should_retry(&self) -> bool {
-        matches!(self, SubmissionErrorType::Timeout | SubmissionErrorType::NetworkError)
+        matches!(
+            self,
+            SubmissionErrorType::Timeout | SubmissionErrorType::NetworkError
+        )
     }
 }
 

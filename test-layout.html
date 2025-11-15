@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { margin: 0; padding: 20px; font-family: monospace; }
+    .container { 
+      position: relative; 
+      width: 100%; 
+      height: 600px; 
+      background: #f0f0f0; 
+      border: 2px solid black;
+    }
+    .panel {
+      position: absolute;
+      border: 3px solid;
+      background: rgba(255,255,255,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .left { left: 0%; top: 0%; width: 50%; height: 100%; border-color: #10a37f; color: #10a37f; }
+    .right { left: 50%; top: 0%; width: 50%; height: 100%; border-color: #4285f4; color: #4285f4; }
+  </style>
+</head>
+<body>
+  <h1>Layout Test</h1>
+  <p>This should show two side-by-side panels (50% width each)</p>
+  <div class="container">
+    <div class="panel left">ChatGPT<br/>Left: 0%, Width: 50%</div>
+    <div class="panel right">Gemini<br/>Left: 50%, Width: 50%</div>
+  </div>
+  <script>
+    const left = document.querySelector('.left');
+    const right = document.querySelector('.right');
+    const rect1 = left.getBoundingClientRect();
+    const rect2 = right.getBoundingClientRect();
+    console.log('Left panel:', rect1);
+    console.log('Right panel:', rect2);
+    document.body.innerHTML += `
+      <pre>
+Left panel: x=${rect1.left}, y=${rect1.top}, w=${rect1.width}, h=${rect1.height}
+Right panel: x=${rect2.left}, y=${rect2.top}, w=${rect2.width}, h=${rect2.height}
+      </pre>
+    `;
+  </script>
+</body>
+</html>

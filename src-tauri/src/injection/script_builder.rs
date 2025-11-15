@@ -135,12 +135,12 @@ pub fn generate_injection_script(
 /// Handles quotes, backslashes, newlines, and other special characters
 fn escape_for_javascript(text: &str) -> String {
     let escaped = text
-        .replace('\\', r"\\")   // Backslash must be first
-        .replace('"', r#"\""#)   // Escape double quotes
-        .replace('\'', r"\'")    // Escape single quotes
-        .replace('\n', r"\n")    // Escape newlines
-        .replace('\r', r"\r")    // Escape carriage returns
-        .replace('\t', r"\t")    // Escape tabs
+        .replace('\\', r"\\") // Backslash must be first
+        .replace('"', r#"\""#) // Escape double quotes
+        .replace('\'', r"\'") // Escape single quotes
+        .replace('\n', r"\n") // Escape newlines
+        .replace('\r', r"\r") // Escape carriage returns
+        .replace('\t', r"\t") // Escape tabs
         .replace('\u{2028}', r"\u2028") // Line separator
         .replace('\u{2029}', r"\u2029"); // Paragraph separator
 
@@ -164,28 +164,19 @@ mod tests {
 
     #[test]
     fn test_escape_for_javascript() {
-        assert_eq!(
-            escape_for_javascript("simple"),
-            r#""simple""#
-        );
+        assert_eq!(escape_for_javascript("simple"), r#""simple""#);
 
         assert_eq!(
             escape_for_javascript(r#"with "quotes""#),
             r#""with \"quotes\"""#
         );
 
-        assert_eq!(
-            escape_for_javascript("with\nnewline"),
-            r#""with\nnewline""#
-        );
+        assert_eq!(escape_for_javascript("with\nnewline"), r#""with\nnewline""#);
     }
 
     #[test]
     fn test_format_selector_array() {
-        let selectors = vec![
-            "input".to_string(),
-            "textarea".to_string(),
-        ];
+        let selectors = vec!["input".to_string(), "textarea".to_string()];
 
         let result = format_selector_array(&selectors);
         assert_eq!(result, r#"["input", "textarea"]"#);

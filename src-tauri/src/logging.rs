@@ -1,9 +1,9 @@
 // Structured logging utilities
 // Constitution Principle IV: Dual output format (JSON + human-readable)
 
-use serde::{Serialize, Deserialize};
+use log::{error, info, warn};
+use serde::{Deserialize, Serialize};
 use serde_json;
-use log::{info, warn, error};
 
 /// Log levels matching the standard log crate
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -36,8 +36,12 @@ impl StructuredLog {
     /// Outputs to logger in both JSON and human-readable formats
     pub fn emit(&self) {
         // JSON format (machine-readable)
-        let json_output = serde_json::to_string(self)
-            .unwrap_or_else(|_| format!("{{\"error\": \"Failed to serialize log\", \"message\": \"{}\"}}", self.message));
+        let json_output = serde_json::to_string(self).unwrap_or_else(|_| {
+            format!(
+                "{{\"error\": \"Failed to serialize log\", \"message\": \"{}\"}}",
+                self.message
+            )
+        });
 
         // Human-readable format
         let human_output = format!(
@@ -164,21 +168,12 @@ mod tests {
 
     #[test]
     fn test_log_levels() {
-        let info_log = StructuredLog::new(
-            LogLevel::Info,
-            "Info".to_string(),
-            serde_json::json!({}),
-        );
-        let warn_log = StructuredLog::new(
-            LogLevel::Warn,
-            "Warning".to_string(),
-            serde_json::json!({}),
-        );
-        let error_log = StructuredLog::new(
-            LogLevel::Error,
-            "Error".to_string(),
-            serde_json::json!({}),
-        );
+        let info_log =
+            StructuredLog::new(LogLevel::Info, "Info".to_string(), serde_json::json!({}));
+        let warn_log =
+            StructuredLog::new(LogLevel::Warn, "Warning".to_string(), serde_json::json!({}));
+        let error_log =
+            StructuredLog::new(LogLevel::Error, "Error".to_string(), serde_json::json!({}));
 
         // Verify serialization includes level
         let info_json = serde_json::to_string(&info_log).unwrap();

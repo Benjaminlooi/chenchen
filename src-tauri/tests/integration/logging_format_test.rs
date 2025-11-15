@@ -2,7 +2,7 @@
 // T147a: Verify structured logging outputs both JSON (machine-readable) and human-readable formats
 // Constitution Principle IV: Dual output format requirement
 
-use chenchen_lib::logging::{StructuredLog, LogLevel};
+use chenchen_lib::logging::{LogLevel, StructuredLog};
 use serde_json;
 
 #[test]

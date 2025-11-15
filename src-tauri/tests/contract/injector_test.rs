@@ -20,19 +20,21 @@ fn test_prepare_injection_returns_script() {
     let submit_selectors = vec!["button".to_string()];
     let prompt = "Test prompt";
 
-    let script = injector.prepare_injection(
-        &input_selectors,
-        &submit_selectors,
-        prompt,
-    );
+    let script = injector.prepare_injection(&input_selectors, &submit_selectors, prompt);
 
     // Verify script is not empty
     assert!(!script.is_empty(), "Generated script should not be empty");
 
     // Verify script contains key elements
-    assert!(script.contains("querySelector"), "Script should use querySelector");
+    assert!(
+        script.contains("querySelector"),
+        "Script should use querySelector"
+    );
     assert!(script.contains("click"), "Script should trigger click");
-    assert!(script.contains("Test prompt"), "Script should contain the prompt");
+    assert!(
+        script.contains("Test prompt"),
+        "Script should contain the prompt"
+    );
 }
 
 #[test]

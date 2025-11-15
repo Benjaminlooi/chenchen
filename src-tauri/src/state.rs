@@ -1,8 +1,8 @@
-use std::sync::Mutex;
-use crate::providers::manager::ProviderManager;
 use crate::providers::config::ProviderConfigs;
+use crate::providers::manager::ProviderManager;
 use crate::status::tracker::StatusTracker;
 use log::{info, warn};
+use std::sync::Mutex;
 
 /// Application state shared across Tauri commands
 /// This state is managed by Tauri and accessible to all commands

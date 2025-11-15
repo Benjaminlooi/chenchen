@@ -3,9 +3,9 @@
 
 pub mod calculator;
 
-use serde::{Deserialize, Serialize};
-use schemars::JsonSchema;
 use crate::types::ProviderId;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
 /// Layout type based on number of selected providers
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]

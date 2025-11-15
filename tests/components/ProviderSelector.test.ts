@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import ProviderSelector from '../../src/components/ProviderSelector.svelte';
@@ -10,6 +11,10 @@ vi.mock('../../src/services/tauri', () => ({
     getProviders: vi.fn(),
     updateProviderSelection: vi.fn(),
   },
+}));
+
+vi.mock('../../src/services/providerWebviews', () => ({
+  focusProviderWebview: vi.fn(),
 }));
 
 describe('ProviderSelector', () => {

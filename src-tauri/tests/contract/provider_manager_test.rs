@@ -35,7 +35,10 @@ fn test_get_all_providers_returns_correct_data() {
 
     for provider in providers {
         // Verify provider fields are populated
-        assert!(!provider.name.is_empty(), "Provider name should not be empty");
+        assert!(
+            !provider.name.is_empty(),
+            "Provider name should not be empty"
+        );
         assert!(!provider.url.is_empty(), "Provider URL should not be empty");
         assert_eq!(
             provider.is_selected, false,
@@ -69,7 +72,9 @@ fn test_update_selection_validates_minimum_one_selected() {
     let error = result.unwrap_err();
     assert_eq!(error.code, "ValidationError");
     assert!(
-        error.message.contains("At least one provider must be selected"),
+        error
+            .message
+            .contains("At least one provider must be selected"),
         "Error message should explain the validation rule"
     );
 }
@@ -98,10 +103,7 @@ fn test_update_selection_validates_maximum_three_selected() {
     let providers = manager.get_all_providers();
     let selected_count = providers.iter().filter(|p| p.is_selected).count();
 
-    assert_eq!(
-        selected_count, 3,
-        "Should allow selecting all 3 providers"
-    );
+    assert_eq!(selected_count, 3, "Should allow selecting all 3 providers");
 }
 
 #[test]
@@ -153,7 +155,11 @@ fn test_get_selected_providers() {
 
     // Initially no providers selected
     let selected = manager.get_selected_providers();
-    assert_eq!(selected.len(), 0, "Should have no selected providers initially");
+    assert_eq!(
+        selected.len(),
+        0,
+        "Should have no selected providers initially"
+    );
 
     // Select ChatGPT and Gemini
     manager
@@ -164,11 +170,7 @@ fn test_get_selected_providers() {
         .expect("Should select Gemini");
 
     let selected = manager.get_selected_providers();
-    assert_eq!(
-        selected.len(),
-        2,
-        "Should have 2 selected providers"
-    );
+    assert_eq!(selected.len(), 2, "Should have 2 selected providers");
     assert!(selected.iter().any(|p| p.id == ProviderId::ChatGPT));
     assert!(selected.iter().any(|p| p.id == ProviderId::Gemini));
 }

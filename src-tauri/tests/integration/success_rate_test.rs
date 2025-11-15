@@ -14,11 +14,7 @@ fn test_submission_success_rate_exceeds_95_percent() {
     const TOTAL_ATTEMPTS: usize = 20;
     const MIN_SUCCESS_RATE: f64 = 0.95;
 
-    let test_providers = vec![
-        ProviderId::ChatGPT,
-        ProviderId::Gemini,
-        ProviderId::Claude,
-    ];
+    let test_providers = vec![ProviderId::ChatGPT, ProviderId::Gemini, ProviderId::Claude];
 
     let mut successful_submissions = 0;
     let mut total_submissions = 0;
@@ -45,7 +41,8 @@ fn test_submission_success_rate_exceeds_95_percent() {
             // For testing purposes, we simulate success/failure
 
             // Simulate 96% success rate (19/20 should succeed)
-            let should_succeed = attempt < 19 || (attempt == 19 && provider_id != &ProviderId::ChatGPT);
+            let should_succeed =
+                attempt < 19 || (attempt == 19 && provider_id != &ProviderId::ChatGPT);
 
             if should_succeed {
                 tracker
@@ -171,11 +168,7 @@ fn test_concurrent_submissions_maintain_isolation() {
     let tracker = StatusTracker::new();
 
     // Create multiple submissions concurrently
-    let providers = vec![
-        ProviderId::ChatGPT,
-        ProviderId::Gemini,
-        ProviderId::Claude,
-    ];
+    let providers = vec![ProviderId::ChatGPT, ProviderId::Gemini, ProviderId::Claude];
 
     let mut submission_ids = Vec::new();
 
