@@ -245,7 +245,7 @@
     border-radius: 8px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
     padding: 0.25rem;
-    z-index: 1000;
+    z-index: 10000;
     animation: dropdown-slide-up 0.2s ease;
   }
 
