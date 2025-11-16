@@ -83,7 +83,7 @@
     layoutDebounceTimer = setTimeout(() => {
       updateLayout();
       layoutDebounceTimer = null;
-    }, 50); // 50ms debounce delay - reduced for snappier UI response
+    }, 5); // 50ms debounce delay - reduced for snappier UI response
   }
 
   function handleProvidersChanged(event: CustomEvent) {
