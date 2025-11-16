@@ -261,7 +261,7 @@
   <div class="bottom-bar">
     <ProviderSelector />
     <div class="divider"></div>
-    <PromptInput on:submitted={handlePromptSubmitted} />
+    <PromptInput onsubmitted={handlePromptSubmitted} />
   </div>
 </main>
 
@@ -288,16 +288,23 @@
     display: flex;
     align-items: center;
     gap: 1rem;
-    padding: 0.5rem 1rem;
-    background: #f8f8f8;
-    border-top: 1px solid #ddd;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(to top, rgba(248, 248, 248, 0.95), rgba(255, 255, 255, 0.9));
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
     flex-shrink: 0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
   }
 
   .divider {
     width: 1px;
-    height: 30px;
-    background: #ddd;
+    height: 32px;
+    background: linear-gradient(to bottom,
+      transparent,
+      rgba(0, 0, 0, 0.1) 20%,
+      rgba(0, 0, 0, 0.1) 80%,
+      transparent
+    );
   }
 
   .layout-container {
@@ -324,12 +331,18 @@
     }
 
     .bottom-bar {
-      background: #1a1a1a;
-      border-top-color: #444;
+      background: linear-gradient(to top, rgba(20, 20, 20, 0.95), rgba(26, 26, 26, 0.9));
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
     }
 
     .divider {
-      background: #444;
+      background: linear-gradient(to bottom,
+        transparent,
+        rgba(255, 255, 255, 0.12) 20%,
+        rgba(255, 255, 255, 0.12) 80%,
+        transparent
+      );
     }
 
     .layout-container {
