@@ -239,6 +239,8 @@
     bottom: calc(100% + 4px);
     left: 0;
     min-width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
     background: rgba(255, 255, 255, 0.98);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(0, 0, 0, 0.08);
@@ -247,6 +249,24 @@
     padding: 0.25rem;
     z-index: 10000;
     animation: dropdown-slide-up 0.2s ease;
+  }
+
+  /* Scrollbar styling for dropdown */
+  .dropdown-menu::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .dropdown-menu::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .dropdown-menu::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+  }
+
+  .dropdown-menu::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
   }
 
   @keyframes dropdown-slide-up {
@@ -356,6 +376,14 @@
       background: rgba(30, 30, 30, 0.98);
       border-color: rgba(255, 255, 255, 0.1);
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .dropdown-menu::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .dropdown-menu::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
     }
 
     .menu-item:hover {
