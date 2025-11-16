@@ -16,7 +16,8 @@ interface ActiveWebview {
   info: WebviewInfo;
 }
 
-const activeWebviews = new Map<ProviderId, ActiveWebview>();
+// Export activeWebviews so other services can access them (e.g., for prompt execution)
+export const activeWebviews = new Map<ProviderId, ActiveWebview>();
 const pendingCreations = new Map<ProviderId, Promise<void>>();
 let windowHandle: Window | null = null;
 

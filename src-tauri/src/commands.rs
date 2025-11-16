@@ -8,8 +8,7 @@ use crate::state::AppState;
 use crate::types::{CommandError, ProviderId};
 use crate::{log_error, log_info};
 use log::{error, info};
-use std::sync::Arc;
-use tauri::State;
+use tauri::{Emitter, State};
 
 /// Gets all available providers
 /// Returns the list of all 3 providers with their current state
@@ -106,7 +105,7 @@ pub fn get_layout_configuration(
 }
 
 /// Submits a prompt to all selected providers
-/// Creates submissions, generates injection scripts, and tracks status
+/// Creates submissions, generates injection scripts, and emits events for frontend execution
 ///
 /// Returns the created submissions with their IDs for status tracking
 #[tauri::command]
@@ -116,7 +115,7 @@ pub async fn submit_prompt(
     prompt: String,
 ) -> Result<Vec<crate::status::Submission>, CommandError> {
     use crate::injection::injector::Injector;
-    use crate::types::SubmissionErrorType;
+    use crate::types::ExecutePromptPayload;
 
     log_info!("Command: submit_prompt called", {
         "command": "submit_prompt",
@@ -154,7 +153,7 @@ pub async fn submit_prompt(
         CommandError::internal("Provider configurations not available")
     })?;
 
-    // Create submissions for each selected provider (T110)
+    // Create submissions for each selected provider
     let mut submissions = Vec::new();
     let injector = Injector::new().map_err(|e| {
         error!("Failed to create Injector: {}", e);
@@ -172,13 +171,13 @@ pub async fn submit_prompt(
             submission.id, provider.id
         );
 
-        let submission_id = submission.id.clone();
-        let provider_id = provider.id;
+        // Start the submission
+        state.status_tracker.start_submission(&submission.id)?;
 
         // Get provider config for selectors
         let config = provider_configs.get_config(provider.id)?;
 
-        // T112: Generate injection script
+        // Generate injection script
         let script =
             injector.prepare_injection(&config.input_selectors, &config.submit_selectors, &prompt);
 
@@ -188,107 +187,21 @@ pub async fn submit_prompt(
             script.len()
         );
 
-        // Clone necessary data for the async task
-        let app_clone = app.clone();
-        let provider_url = provider.url.clone();
-        let provider_name = provider.name.clone();
-        let script_clone = script.clone();
+        // Emit event for frontend to execute the script
+        let payload = ExecutePromptPayload {
+            submission_id: submission.id.clone(),
+            provider_id: provider.id,
+            script,
+        };
 
-        // Clone Arc references for the async task
-        let status_tracker = Arc::clone(&state.status_tracker);
-        let webview_manager = Arc::clone(&state.webview_manager);
+        app.emit("execute-prompt", payload).map_err(|e| {
+            error!("Failed to emit execute-prompt event: {}", e);
+            CommandError::internal("Failed to emit execution event")
+        })?;
 
-        // T111: Spawn async task for concurrent execution
-        tauri::async_runtime::spawn(async move {
-
-            // Start the submission
-            if let Err(e) = status_tracker.start_submission(&submission_id) {
-                log_error!("Failed to start submission", {
-                    "submission_id": &submission_id,
-                    "provider_id": format!("{:?}", provider_id),
-                    "error": e.to_string()
-                });
-                return;
-            }
-
-            log_info!("Starting submission execution", {
-                "submission_id": &submission_id,
-                "provider_id": format!("{:?}", provider_id)
-            });
-
-            // Create or get webview for this provider
-            if let Err(e) = webview_manager.get_or_create_webview(
-                &app_clone,
-                provider_id,
-                &provider_url,
-                &provider_name,
-            ) {
-                log_error!("Failed to create webview", {
-                    "submission_id": &submission_id,
-                    "provider_id": format!("{:?}", provider_id),
-                    "error": &e
-                });
-                let _ = status_tracker.fail_submission(
-                    &submission_id,
-                    SubmissionErrorType::NetworkError,
-                    format!("Failed to create webview: {}", e),
-                );
-                return;
-            }
-
-            // Wait for webview to load (give it some time to navigate)
-            // Use a simple timer by spawning a blocking sleep in the async runtime
-            let _ = tauri::async_runtime::spawn_blocking(|| {
-                std::thread::sleep(std::time::Duration::from_secs(2));
-            }).await;
-
-            // T112: Execute the injection
-            let execution_result = Injector::new()
-                .unwrap()
-                .execute(&*webview_manager, provider_id, &script_clone)
-                .await;
-
-            // T113: Update submission status based on result
-            match execution_result {
-                Ok(result) if result.success => {
-                    log_info!("Submission succeeded", {
-                        "submission_id": &submission_id,
-                        "provider_id": format!("{:?}", provider_id)
-                    });
-                    let _ = status_tracker.succeed_submission(&submission_id);
-                }
-                Ok(result) => {
-                    let error_msg = result.error_message.unwrap_or_else(|| "Unknown error".to_string());
-                    log_error!("Submission failed", {
-                        "submission_id": &submission_id,
-                        "provider_id": format!("{:?}", provider_id),
-                        "error": &error_msg
-                    });
-                    let _ = status_tracker.fail_submission(
-                        &submission_id,
-                        SubmissionErrorType::ElementNotFound,
-                        error_msg,
-                    );
-                }
-                Err(e) => {
-                    log_error!("Execution error", {
-                        "submission_id": &submission_id,
-                        "provider_id": format!("{:?}", provider_id),
-                        "error": &e
-                    });
-                    let _ = status_tracker.fail_submission(
-                        &submission_id,
-                        SubmissionErrorType::NetworkError,
-                        e,
-                    );
-                }
-            }
-
-            // T114: Event emission happens in status_tracker.update_status
-            log_info!("Submission task completed", {
-                "submission_id": &submission_id,
-                "provider_id": format!("{:?}", provider_id)
-            });
+        log_info!("Emitted execute-prompt event", {
+            "submission_id": &submission.id,
+            "provider_id": format!("{:?}", provider.id)
         });
 
         submissions.push(submission);
@@ -315,5 +228,50 @@ pub fn get_submission_status(
     info!("Retrieved submission status: {:?}", submission.status);
 
     Ok(submission)
+}
+
+/// Handles execution results from the frontend
+#[tauri::command]
+pub fn report_execution_result(
+    state: State<AppState>,
+    payload: crate::types::ExecutionResultPayload,
+) -> Result<(), CommandError> {
+    use crate::types::SubmissionErrorType;
+
+    log_info!("Command: report_execution_result called", {
+        "submission_id": &payload.submission_id,
+        "provider_id": format!("{:?}", payload.provider_id),
+        "success": payload.success
+    });
+
+    // Update submission status based on the result
+    if payload.success {
+        state
+            .status_tracker
+            .succeed_submission(&payload.submission_id)?;
+
+        log_info!("Marked submission as successful", {
+            "submission_id": &payload.submission_id
+        });
+    } else {
+        let error_type = if !payload.element_found {
+            SubmissionErrorType::ElementNotFound
+        } else {
+            SubmissionErrorType::InjectionFailed
+        };
+
+        state.status_tracker.fail_submission(
+            &payload.submission_id,
+            error_type,
+            payload.error_message.unwrap_or_else(|| "Execution failed".to_string()),
+        )?;
+
+        log_info!("Marked submission as failed", {
+            "submission_id": &payload.submission_id,
+            "error_type": format!("{:?}", error_type)
+        });
+    }
+
+    Ok(())
 }
 

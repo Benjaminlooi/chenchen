@@ -93,3 +93,31 @@ impl std::fmt::Display for CommandError {
 }
 
 impl std::error::Error for CommandError {}
+
+/// Event payload for executing a prompt injection in a provider webview
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecutePromptPayload {
+    /// Unique identifier for this submission
+    pub submission_id: String,
+    /// Provider to execute in
+    pub provider_id: ProviderId,
+    /// JavaScript code to execute
+    pub script: String,
+}
+
+/// Event payload for reporting prompt execution results from frontend
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecutionResultPayload {
+    /// Submission ID this result is for
+    pub submission_id: String,
+    /// Provider that executed the script
+    pub provider_id: ProviderId,
+    /// Whether the execution was successful
+    pub success: bool,
+    /// Optional error message if execution failed
+    pub error_message: Option<String>,
+    /// Whether the input element was found
+    pub element_found: bool,
+    /// Whether the submit button was triggered
+    pub submit_triggered: bool,
+}

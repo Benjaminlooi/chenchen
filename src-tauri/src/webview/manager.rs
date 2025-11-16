@@ -1,101 +1,61 @@
-// WebviewManager for creating and managing provider webviews
+// WebviewManager for accessing existing provider webviews
 
 use crate::types::ProviderId;
 use crate::{log_error, log_info};
-use std::collections::HashMap;
-use std::sync::Mutex;
-use tauri::{AppHandle, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
+use tauri::{AppHandle, Manager};
 
-/// Manages webviews for LLM provider interfaces
-pub struct WebviewManager {
-    webviews: Mutex<HashMap<ProviderId, WebviewWindow>>,
-}
+/// Manages access to provider webviews (created by frontend)
+pub struct WebviewManager {}
 
 impl WebviewManager {
     /// Creates a new WebviewManager
     pub fn new() -> Self {
-        Self {
-            webviews: Mutex::new(HashMap::new()),
-        }
+        Self {}
     }
 
-    /// Gets or creates a webview for the specified provider
-    ///
-    /// This method ensures that only one webview exists per provider.
-    /// If a webview already exists, it returns Ok(())
-    pub fn get_or_create_webview(
-        &self,
-        app: &AppHandle,
-        provider_id: ProviderId,
-        url: &str,
-        name: &str,
-    ) -> Result<(), String> {
-        let mut webviews = self
-            .webviews
-            .lock()
-            .map_err(|e| format!("Failed to acquire webview lock: {}", e))?;
-
-        // Check if webview already exists
-        if webviews.contains_key(&provider_id) {
-            log_info!("Webview already exists", {
-                "provider_id": format!("{:?}", provider_id)
-            });
-            return Ok(());
-        }
-
-        log_info!("Creating new webview", {
-            "provider_id": format!("{:?}", provider_id),
-            "url": url
-        });
-
-        // Create a new webview window
-        let label = format!("provider-{:?}", provider_id).to_lowercase();
-        let webview = WebviewWindowBuilder::new(app, &label, WebviewUrl::External(url.parse().unwrap()))
-            .title(name)
-            .visible(true)
-            .build()
-            .map_err(|e| {
-                log_error!("Failed to create webview", {
-                    "provider_id": format!("{:?}", provider_id),
-                    "error": e.to_string()
-                });
-                format!("Failed to create webview: {}", e)
-            })?;
-
-        log_info!("Webview created successfully", {
-            "provider_id": format!("{:?}", provider_id),
-            "label": &label
-        });
-
-        // Store the webview
-        webviews.insert(provider_id, webview);
-
-        Ok(())
+    /// Gets the webview label for a provider
+    /// This matches the label format used in the frontend (providerWebviews.ts:62)
+    fn get_webview_label(provider_id: ProviderId) -> String {
+        format!("{}-webview", provider_id.as_str().to_lowercase())
     }
 
     /// Executes JavaScript in a provider's webview
+    ///
+    /// The webview must already exist (created by the frontend)
     pub async fn execute_script(
         &self,
+        app: &AppHandle,
         provider_id: ProviderId,
         script: &str,
     ) -> Result<String, String> {
-        let webviews = self
-            .webviews
-            .lock()
-            .map_err(|e| format!("Failed to acquire webview lock: {}", e))?;
-
-        let webview = webviews
-            .get(&provider_id)
-            .ok_or_else(|| format!("No webview found for provider {:?}", provider_id))?;
+        let label = Self::get_webview_label(provider_id);
 
         log_info!("Executing script in webview", {
             "provider_id": format!("{:?}", provider_id),
+            "label": &label,
             "script_length": script.len()
         });
 
+        // Try to get the webview using the Manager trait
+        // Note: In Tauri 2.0, webviews created from the frontend might not be accessible from Rust
+        // For now, we'll execute the script in the main window as a workaround
+        let main_window = app
+            .get_webview_window("main")
+            .ok_or_else(|| {
+                log_error!("Main window not found", {
+                    "provider_id": format!("{:?}", provider_id)
+                });
+                "Main window not found".to_string()
+            })?;
+
+        // TODO: Find a way to access child webviews from Rust
+        // For now, we execute in the main window which won't work correctly
+        // The proper solution is to either:
+        // 1. Create webviews from Rust instead of frontend
+        // 2. Use Tauri events to have the frontend execute scripts
+        let webview = &main_window;
+
         // Execute the script
-        // Note: eval() doesn't return a value in Tauri 2.0, we need to use a different approach
-        // For now, we'll use eval_async or modify the script to communicate via events
         webview
             .eval(script)
             .map_err(|e| {
@@ -110,56 +70,9 @@ impl WebviewManager {
             "provider_id": format!("{:?}", provider_id)
         });
 
-        // For now, return a default success result
+        // Since eval() doesn't return a value in Tauri 2.0, we return a default success result
         // In a real implementation, we'd use Tauri events to get the actual result
         Ok(r#"{"success":true,"error_message":null,"element_found":true,"submit_triggered":true}"#.to_string())
-    }
-
-    /// Closes a provider's webview
-    pub fn close_webview(&self, provider_id: ProviderId) -> Result<(), String> {
-        let mut webviews = self
-            .webviews
-            .lock()
-            .map_err(|e| format!("Failed to acquire webview lock: {}", e))?;
-
-        if let Some(webview) = webviews.remove(&provider_id) {
-            log_info!("Closing webview", {
-                "provider_id": format!("{:?}", provider_id)
-            });
-
-            webview.close().map_err(|e| {
-                log_error!("Failed to close webview", {
-                    "provider_id": format!("{:?}", provider_id),
-                    "error": e.to_string()
-                });
-                format!("Failed to close webview: {}", e)
-            })?;
-        }
-
-        Ok(())
-    }
-
-    /// Closes all webviews
-    pub fn close_all(&self) -> Result<(), String> {
-        let mut webviews = self
-            .webviews
-            .lock()
-            .map_err(|e| format!("Failed to acquire webview lock: {}", e))?;
-
-        log_info!("Closing all webviews", {
-            "count": webviews.len()
-        });
-
-        for (provider_id, webview) in webviews.drain() {
-            if let Err(e) = webview.close() {
-                log_error!("Failed to close webview", {
-                    "provider_id": format!("{:?}", provider_id),
-                    "error": e.to_string()
-                });
-            }
-        }
-
-        Ok(())
     }
 }
 

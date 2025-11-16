@@ -39,6 +39,7 @@ pub fn run() {
             commands::get_layout_configuration,
             commands::submit_prompt,
             commands::get_submission_status,
+            commands::report_execution_result,
         ])
         .run(tauri::generate_context!())
         .unwrap_or_else(|err| {
