@@ -3,7 +3,6 @@
   import ProviderSelector from '../components/ProviderSelector.svelte';
   import ProviderPanel from '../components/ProviderPanel.svelte';
   import PromptInput from '../components/PromptInput.svelte';
-  import StatusDisplay from '../components/StatusDisplay.svelte';
   import { tauri } from '../services/tauri';
   import { syncProviderWebviews, type PanelBounds } from '../services/providerWebviews';
   import type { LayoutConfiguration, Provider, Submission } from '../types';
@@ -12,7 +11,6 @@
   // State
   let layout = $state<LayoutConfiguration | null>(null);
   let providers = $state<Provider[]>([]);
-  let layoutError = $state<string | null>(null);
   let submissions = $state<Submission[]>([]);
   let layoutContainerElement = $state<HTMLElement | null>(null);
 
@@ -155,16 +153,10 @@
 </script>
 
 <main class="container">
-  <div class="header">
-    <h1>ChenChen</h1>
+  <div class="top-bar">
     <ProviderSelector />
-  </div>
-
-  <div class="controls">
+    <div class="divider"></div>
     <PromptInput on:submitted={handlePromptSubmitted} />
-    {#if submissions.length > 0}
-      <StatusDisplay {submissions} />
-    {/if}
   </div>
 
   <!-- Provider panels in split-screen layout -->
@@ -177,11 +169,9 @@
         />
       {/each}
     </div>
-  {:else if layoutError}
-    <div class="layout-error">{layoutError}</div>
   {:else}
     <div class="layout-placeholder">
-      <p>Select providers to begin</p>
+      Select LLMs above to view responses side-by-side
     </div>
   {/if}
 </main>
@@ -202,58 +192,40 @@
     display: flex;
     flex-direction: column;
     height: 100vh;
-    padding: 0.25rem;
-    gap: 0.25rem;
     overflow: hidden;
   }
 
-  .header {
+  .top-bar {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.25rem 0.5rem;
+    gap: 1rem;
+    padding: 0.5rem 1rem;
     background: #f8f8f8;
-    border-radius: 4px;
+    border-bottom: 1px solid #ddd;
     flex-shrink: 0;
   }
 
-  h1 {
-    font-size: 1.1rem;
-    margin: 0;
-    color: #333;
-    white-space: nowrap;
-  }
-
-  .controls {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    flex-shrink: 0;
+  .divider {
+    width: 1px;
+    height: 30px;
+    background: #ddd;
   }
 
   .layout-container {
     position: relative;
     flex: 1;
-    min-height: 200px;
     background: #fff;
-    border: 2px solid #ddd;
-    border-radius: 6px;
     overflow: hidden;
   }
 
-  .layout-placeholder,
-  .layout-error {
-    padding: 2rem;
-    text-align: center;
+  .layout-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
     color: #999;
+    font-size: 1.1rem;
     font-style: italic;
-  }
-
-  .layout-error {
-    color: #c33;
-    background: #fee;
-    border: 1px solid #fcc;
-    border-radius: 4px;
   }
 
   @media (prefers-color-scheme: dark) {
@@ -262,23 +234,21 @@
       background-color: #2f2f2f;
     }
 
-    h1 {
-      color: #f6f6f6;
+    .top-bar {
+      background: #1a1a1a;
+      border-bottom-color: #444;
+    }
+
+    .divider {
+      background: #444;
     }
 
     .layout-container {
       background: #1a1a1a;
-      border-color: #444;
     }
 
     .layout-placeholder {
       color: #888;
-    }
-
-    .layout-error {
-      background: #3a1a1a;
-      border-color: #6a2a2a;
-      color: #ff6666;
     }
   }
 </style>
