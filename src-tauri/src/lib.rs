@@ -40,6 +40,7 @@ pub fn run() {
             commands::submit_prompt,
             commands::get_submission_status,
             commands::report_execution_result,
+            commands::sync_provider_webview,
         ])
         .run(tauri::generate_context!())
         .unwrap_or_else(|err| {
