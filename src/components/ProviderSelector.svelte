@@ -1,13 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { tauri } from '../services/tauri';
-  import { focusProviderWebview } from '../services/providerWebviews';
-  import type { Provider, AuthenticationStatus } from '../types';
+  import type { Provider } from '../types';
   import { ProviderId } from '../types';
 
   // Component state
   let providers: Provider[] = [];
-  let authStatuses: Map<ProviderId, AuthenticationStatus> = new Map();
   let loading = true;
   let togglingProviders = new Set<ProviderId>();
 
@@ -16,38 +14,11 @@
     try {
       providers = await tauri.getProviders();
       loading = false;
-
-      // Check authentication status for all providers
-      await checkAllAuthStatuses();
     } catch (e) {
-      error = e instanceof Error ? e.message : 'Failed to load providers';
+      console.error('Failed to load providers:', e);
       loading = false;
     }
   });
-
-  // Check authentication status for all providers
-  async function checkAllAuthStatuses() {
-    try {
-      const statusPromises = providers.map((provider) =>
-        tauri.checkAuthentication(provider.id).then((status) => ({
-          providerId: provider.id,
-          status,
-        }))
-      );
-
-      const results = await Promise.all(statusPromises);
-
-      // Update auth statuses map
-      results.forEach(({ providerId, status }) => {
-        authStatuses.set(providerId, status);
-      });
-
-      // Trigger reactivity
-      authStatuses = new Map(authStatuses);
-    } catch (e) {
-      console.error('Failed to check authentication statuses:', e);
-    }
-  }
 
   // Handle provider selection change
   async function handleProviderToggle(providerId: ProviderId, isSelected: boolean) {

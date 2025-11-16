@@ -83,7 +83,7 @@
     layoutDebounceTimer = setTimeout(() => {
       updateLayout();
       layoutDebounceTimer = null;
-    }, 150); // 150ms debounce delay
+    }, 50); // 50ms debounce delay - reduced for snappier UI response
   }
 
   function handleProvidersChanged(event: CustomEvent) {
@@ -100,7 +100,7 @@
     resizeDebounceTimer = setTimeout(() => {
       scheduleWebviewPositionSync();
       resizeDebounceTimer = null;
-    }, 150); // 150ms debounce delay
+    }, 100); // 100ms debounce delay - reduced for smoother resizing
   }
 
   function scheduleWebviewPositionSync() {
