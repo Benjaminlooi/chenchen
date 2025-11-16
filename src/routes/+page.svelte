@@ -16,7 +16,7 @@
 
   // Debounce timer for layout recalculation (T152: Performance optimization)
   let layoutDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-  let scrollDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  let resizeDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   // Load providers and layout on mount
   onMount(() => {
@@ -25,12 +25,12 @@
     // Set up custom event listener for provider changes
     window.addEventListener('providers-changed', handleProvidersChanged as EventListener);
 
-    // Update webview positions on scroll
-    window.addEventListener('scroll', handleScroll);
+    // Update webview positions on window resize
+    window.addEventListener('resize', handleResize);
 
     return () => {
       window.removeEventListener('providers-changed', handleProvidersChanged as EventListener);
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
     };
   });
 
@@ -79,16 +79,16 @@
     debouncedUpdateLayout();
   }
 
-  // Update webview positions when scrolling
-  function handleScroll() {
-    if (scrollDebounceTimer) {
-      clearTimeout(scrollDebounceTimer);
+  // Update webview positions when window resizes
+  function handleResize() {
+    if (resizeDebounceTimer) {
+      clearTimeout(resizeDebounceTimer);
     }
 
-    scrollDebounceTimer = setTimeout(() => {
+    resizeDebounceTimer = setTimeout(() => {
       updateWebviewPositions();
-      scrollDebounceTimer = null;
-    }, 16); // ~60fps
+      resizeDebounceTimer = null;
+    }, 150); // 150ms debounce delay
   }
 
   function updateWebviewPositions() {
