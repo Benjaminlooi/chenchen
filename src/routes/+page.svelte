@@ -11,15 +11,15 @@
   // State
   let layout = $state<LayoutConfiguration | null>(null);
   let providers = $state<Provider[]>([]);
-  let submissions = $state<Submission[]>([]);
   let layoutContainerElement = $state<HTMLElement | null>(null);
+  let layoutError = $state<string | null>(null);
 
   // Debounce timer for layout recalculation (T152: Performance optimization)
   let layoutDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   let scrollDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   // Load providers and layout on mount
-  onMount(async () => {
+  onMount(() => {
     loadProvidersAndLayout();
 
     // Set up custom event listener for provider changes
@@ -109,7 +109,8 @@
 
   // T124: Handle prompt submission
   async function handlePromptSubmitted(event: CustomEvent<{ submissions: Submission[] }>) {
-    submissions = event.detail.submissions;
+    // TODO: Handle submission status updates when event system is implemented
+    console.log('Prompt submitted:', event.detail.submissions);
   }
 
   // Convert percentage-based PanelDimensions to pixel-based PanelBounds

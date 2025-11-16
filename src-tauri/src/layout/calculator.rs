@@ -10,7 +10,7 @@ use log::info;
 /// Layout rules per data-model.md:
 /// - 1 provider: Full screen (x:0, y:0, w:1.0, h:1.0)
 /// - 2 providers: Vertical split (left: w:0.5, right: x:0.5, w:0.5)
-/// - 3 providers: Grid (2 top at h:0.5, 1 bottom full width)
+/// - 3 providers: Horizontal triple split (3 equal columns, w:0.333 each)
 ///
 /// # Panics
 /// Panics if provider_count is not between 1 and 3
@@ -40,11 +40,12 @@ pub fn calculate_layout(providers: &[ProviderId]) -> LayoutConfiguration {
             (LayoutType::VerticalSplit, panels)
         }
         3 => {
-            // Grid layout: 2 top, 1 bottom full width
+            // Horizontal triple split: 3 equal columns side by side
+            let panel_width = 1.0 / 3.0; // Each panel gets 1/3 of the width
             let panels = vec![
-                PanelDimension::new(providers[0], 0.0, 0.0, 0.5, 0.5), // Top-left
-                PanelDimension::new(providers[1], 0.5, 0.0, 0.5, 0.5), // Top-right
-                PanelDimension::new(providers[2], 0.0, 0.5, 1.0, 0.5), // Bottom (full width)
+                PanelDimension::new(providers[0], 0.0, 0.0, panel_width, 1.0), // Left column
+                PanelDimension::new(providers[1], panel_width, 0.0, panel_width, 1.0), // Middle column
+                PanelDimension::new(providers[2], 2.0 * panel_width, 0.0, panel_width, 1.0), // Right column
             ];
             (LayoutType::Grid, panels)
         }
