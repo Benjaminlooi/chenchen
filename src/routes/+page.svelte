@@ -154,12 +154,6 @@
 </script>
 
 <main class="container">
-  <div class="top-bar">
-    <ProviderSelector />
-    <div class="divider"></div>
-    <PromptInput on:submitted={handlePromptSubmitted} />
-  </div>
-
   <!-- Provider panels in split-screen layout -->
   {#if layout && layout.panel_dimensions.length > 0}
     <div class="layout-container" bind:this={layoutContainerElement}>
@@ -172,9 +166,15 @@
     </div>
   {:else}
     <div class="layout-placeholder">
-      Select LLMs above to view responses side-by-side
+      Select LLMs below to view responses side-by-side
     </div>
   {/if}
+
+  <div class="bottom-bar">
+    <ProviderSelector />
+    <div class="divider"></div>
+    <PromptInput on:submitted={handlePromptSubmitted} />
+  </div>
 </main>
 
 <style>
@@ -196,13 +196,13 @@
     overflow: hidden;
   }
 
-  .top-bar {
+  .bottom-bar {
     display: flex;
     align-items: center;
     gap: 1rem;
     padding: 0.5rem 1rem;
     background: #f8f8f8;
-    border-bottom: 1px solid #ddd;
+    border-top: 1px solid #ddd;
     flex-shrink: 0;
   }
 
@@ -235,9 +235,9 @@
       background-color: #2f2f2f;
     }
 
-    .top-bar {
+    .bottom-bar {
       background: #1a1a1a;
-      border-bottom-color: #444;
+      border-top-color: #444;
     }
 
     .divider {
