@@ -52,7 +52,9 @@
         "fieldset textarea"
       ],
       "submit_selectors": [
-        "button[aria-label='Send Message']",
+        "button[aria-label='Send message']",
+        "button[type='button'][aria-label*='Send']",
+        "fieldset button[type='button']",
         "button[type='submit']",
         ".send-button"
       ],
