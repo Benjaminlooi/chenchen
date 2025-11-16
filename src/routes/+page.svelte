@@ -21,6 +21,9 @@
   // Debounce timer for layout recalculation (T152: Performance optimization)
   let layoutDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   let resizeDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  let resizeObserver: ResizeObserver | null = null;
+  const observedResizeTargets = new Set<Element>();
+  let pendingBoundsSyncFrame: number | null = null;
 
   // Load providers and layout on mount
   onMount(() => {
@@ -39,6 +42,7 @@
       cleanupPromptExecutionListener();
       window.removeEventListener('providers-changed', handleProvidersChanged as EventListener);
       window.removeEventListener('resize', handleResize);
+      cleanupPanelResizeObserver();
     };
   });
 
@@ -94,9 +98,73 @@
     }
 
     resizeDebounceTimer = setTimeout(() => {
-      updateWebviewPositions();
+      scheduleWebviewPositionSync();
       resizeDebounceTimer = null;
     }, 150); // 150ms debounce delay
+  }
+
+  function scheduleWebviewPositionSync() {
+    if (!ENABLE_WEBVIEWS || typeof window === 'undefined') return;
+
+    if (pendingBoundsSyncFrame !== null) {
+      window.cancelAnimationFrame(pendingBoundsSyncFrame);
+    }
+
+    pendingBoundsSyncFrame = window.requestAnimationFrame(() => {
+      pendingBoundsSyncFrame = null;
+      updateWebviewPositions();
+    });
+  }
+
+  function initPanelResizeObserver() {
+    if (!ENABLE_WEBVIEWS || !layoutContainerElement) {
+      return;
+    }
+
+    if (typeof ResizeObserver === 'undefined') {
+      console.warn('ResizeObserver is not supported in this environment.');
+      scheduleWebviewPositionSync();
+      return;
+    }
+
+    if (!resizeObserver) {
+      resizeObserver = new ResizeObserver(() => {
+        scheduleWebviewPositionSync();
+      });
+    }
+
+    const targets = layoutContainerElement.querySelectorAll('[data-webview-target]');
+    const nextObservedTargets = new Set<Element>();
+
+    targets.forEach((target) => {
+      nextObservedTargets.add(target);
+      if (!observedResizeTargets.has(target)) {
+        resizeObserver?.observe(target);
+      }
+    });
+
+    observedResizeTargets.forEach((target) => {
+      if (!nextObservedTargets.has(target)) {
+        resizeObserver?.unobserve(target);
+      }
+    });
+
+    observedResizeTargets.clear();
+    nextObservedTargets.forEach((target) => observedResizeTargets.add(target));
+  }
+
+  function cleanupPanelResizeObserver() {
+    if (resizeObserver) {
+      observedResizeTargets.forEach((target) => resizeObserver?.unobserve(target));
+      observedResizeTargets.clear();
+      resizeObserver.disconnect();
+      resizeObserver = null;
+    }
+
+    if (pendingBoundsSyncFrame !== null && typeof window !== 'undefined') {
+      window.cancelAnimationFrame(pendingBoundsSyncFrame);
+      pendingBoundsSyncFrame = null;
+    }
   }
 
   function updateWebviewPositions() {
@@ -169,23 +237,13 @@
     if (!ENABLE_WEBVIEWS) return; // Skip when disabled
 
     if (layout && layout.panel_dimensions.length > 0 && layoutContainerElement) {
-      // Wait for DOM to update with new ProviderPanel components
+      // Wait for DOM to update with new ProviderPanel components before observing
       tick().then(() => {
-        // Use setTimeout to ensure browser has completed all layout/paint operations
-        setTimeout(() => {
-          const bounds = calculatePanelBounds();
-          console.log('Calculated bounds:', bounds);
-          if (bounds.length > 0) {
-            syncProviderWebviews(bounds)
-              .then(() => {
-                console.log('Provider webviews synced successfully');
-              })
-              .catch((error) => {
-                console.error('Failed to sync provider webviews:', error);
-              });
-          }
-        }, 50); // 50ms delay to allow browser to finish rendering
+        initPanelResizeObserver();
+        scheduleWebviewPositionSync();
       });
+    } else {
+      cleanupPanelResizeObserver();
     }
   });
 </script>
