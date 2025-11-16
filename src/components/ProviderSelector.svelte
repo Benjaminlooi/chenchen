@@ -9,6 +9,7 @@
   let providers: Provider[] = [];
   let authStatuses: Map<ProviderId, AuthenticationStatus> = new Map();
   let loading = true;
+  let togglingProviders = new Set<ProviderId>();
 
   // Load providers on component mount
   onMount(async () => {
@@ -50,6 +51,10 @@
 
   // Handle provider selection change
   async function handleProviderToggle(providerId: ProviderId, isSelected: boolean) {
+    // Mark as toggling for visual feedback
+    togglingProviders.add(providerId);
+    togglingProviders = togglingProviders;
+
     try {
       const updatedProvider = await tauri.updateProviderSelection(providerId, isSelected);
 
@@ -69,6 +74,10 @@
       providers = providers.map((p) =>
         p.id === providerId ? { ...p, is_selected: !isSelected } : p
       );
+    } finally {
+      // Remove toggling state
+      togglingProviders.delete(providerId);
+      togglingProviders = togglingProviders;
     }
   }
 
@@ -90,10 +99,15 @@
 <div class="provider-selector">
   {#if !loading}
     {#each providers as provider (provider.id)}
-      <label class="provider-item">
+      <label
+        class="provider-item"
+        class:selected={provider.is_selected}
+        class:toggling={togglingProviders.has(provider.id)}
+      >
         <input
           type="checkbox"
           checked={provider.is_selected}
+          disabled={togglingProviders.has(provider.id)}
           onchange={(e) =>
             handleProviderToggle(provider.id, e.currentTarget.checked)}
           data-testid={`provider-checkbox-${provider.id}`}
@@ -118,23 +132,67 @@
     gap: 0.4rem;
     cursor: pointer;
     padding: 0.3rem 0.6rem;
-    border-radius: 4px;
-    transition: background 0.2s;
+    border-radius: 6px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: center;
+    position: relative;
   }
 
   .provider-item:hover {
     background: rgba(0, 0, 0, 0.05);
+    transform: scale(1.02);
+  }
+
+  .provider-item.selected {
+    background: rgba(59, 130, 246, 0.1);
+  }
+
+  .provider-item.selected:hover {
+    background: rgba(59, 130, 246, 0.15);
+  }
+
+  .provider-item.toggling {
+    opacity: 0.6;
+    cursor: wait;
+    animation: pulse 1s ease-in-out infinite;
+  }
+
+  .provider-item.toggling:hover {
+    transform: scale(1);
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 0.6;
+    }
+    50% {
+      opacity: 0.8;
+    }
   }
 
   .provider-item input[type='checkbox'] {
     width: 16px;
     height: 16px;
     cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .provider-item input[type='checkbox']:disabled {
+    cursor: wait;
+  }
+
+  .provider-item input[type='checkbox']:active:not(:disabled) {
+    transform: scale(0.9);
   }
 
   .provider-icon {
     font-size: 1.2rem;
     line-height: 1;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .provider-item.selected .provider-icon {
+    transform: scale(1.1);
   }
 
   .provider-name {
@@ -142,5 +200,11 @@
     font-weight: 500;
     color: var(--text-primary, #333);
     white-space: nowrap;
+    transition: color 0.2s ease;
+  }
+
+  .provider-item.selected .provider-name {
+    color: rgb(59, 130, 246);
+    font-weight: 600;
   }
 </style>

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { fade, scale } from 'svelte/transition';
+  import { cubicOut } from 'svelte/easing';
   import type { PanelDimension, ProviderId } from '../types';
 
   interface Props {
@@ -34,6 +36,8 @@
   style:height={toPercent(dimension.height)}
   style:border-color={getProviderColor(dimension.provider_id)}
   data-provider-id={dimension.provider_id}
+  in:scale={{ duration: 300, start: 0.95, easing: cubicOut }}
+  out:fade={{ duration: 200 }}
 >
   <div class="panel-header" style:background={getProviderColor(dimension.provider_id)}>
     <h3>{providerName}</h3>
@@ -64,7 +68,10 @@
     background: white;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .panel-header {
