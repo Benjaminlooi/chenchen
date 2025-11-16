@@ -9,7 +9,7 @@
   import '../app.css'; // Import global styles
 
   // TEMPORARY: Disable webviews for design work
-  const ENABLE_WEBVIEWS = false;
+  const ENABLE_WEBVIEWS = true;
 
   // State
   let layout = $state<LayoutConfiguration | null>(null);
