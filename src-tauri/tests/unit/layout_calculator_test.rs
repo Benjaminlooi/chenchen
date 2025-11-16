@@ -2,7 +2,7 @@
 // Tests the calculate_layout() function with different provider counts
 
 use chenchen_lib::layout::calculator::calculate_layout;
-use chenchen_lib::layout::{LayoutConfiguration, LayoutType};
+use chenchen_lib::layout::LayoutType;
 use chenchen_lib::types::ProviderId;
 
 #[test]
@@ -69,29 +69,31 @@ fn test_calculate_layout_with_3_providers() {
     assert_eq!(layout.layout_type, LayoutType::Grid);
     assert_eq!(layout.panel_dimensions.len(), 3);
 
-    // Top-left panel (ChatGPT)
-    let top_left = &layout.panel_dimensions[0];
-    assert_eq!(top_left.provider_id, ProviderId::ChatGPT);
-    assert_eq!(top_left.x, 0.0);
-    assert_eq!(top_left.y, 0.0);
-    assert_eq!(top_left.width, 0.5);
-    assert_eq!(top_left.height, 0.5);
+    let panel_width = 1.0 / 3.0; // ~0.333...
 
-    // Top-right panel (Gemini)
-    let top_right = &layout.panel_dimensions[1];
-    assert_eq!(top_right.provider_id, ProviderId::Gemini);
-    assert_eq!(top_right.x, 0.5);
-    assert_eq!(top_right.y, 0.0);
-    assert_eq!(top_right.width, 0.5);
-    assert_eq!(top_right.height, 0.5);
+    // Left panel (ChatGPT)
+    let left = &layout.panel_dimensions[0];
+    assert_eq!(left.provider_id, ProviderId::ChatGPT);
+    assert_eq!(left.x, 0.0);
+    assert_eq!(left.y, 0.0);
+    assert_eq!(left.width, panel_width);
+    assert_eq!(left.height, 1.0);
 
-    // Bottom panel (Claude) - full width
-    let bottom = &layout.panel_dimensions[2];
-    assert_eq!(bottom.provider_id, ProviderId::Claude);
-    assert_eq!(bottom.x, 0.0);
-    assert_eq!(bottom.y, 0.5);
-    assert_eq!(bottom.width, 1.0);
-    assert_eq!(bottom.height, 0.5);
+    // Middle panel (Gemini)
+    let middle = &layout.panel_dimensions[1];
+    assert_eq!(middle.provider_id, ProviderId::Gemini);
+    assert_eq!(middle.x, panel_width);
+    assert_eq!(middle.y, 0.0);
+    assert_eq!(middle.width, panel_width);
+    assert_eq!(middle.height, 1.0);
+
+    // Right panel (Claude)
+    let right = &layout.panel_dimensions[2];
+    assert_eq!(right.provider_id, ProviderId::Claude);
+    assert_eq!(right.x, 2.0 * panel_width);
+    assert_eq!(right.y, 0.0);
+    assert_eq!(right.width, panel_width);
+    assert_eq!(right.height, 1.0);
 }
 
 #[test]

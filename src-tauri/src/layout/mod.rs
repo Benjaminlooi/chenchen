@@ -14,7 +14,7 @@ pub enum LayoutType {
     Full,
     /// Two providers - side-by-side vertical split
     VerticalSplit,
-    /// Three providers - grid layout (2 top, 1 bottom)
+    /// Three providers - horizontal triple split (3 equal columns)
     Grid,
 }
 
