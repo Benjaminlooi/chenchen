@@ -27,7 +27,8 @@ pub fn generate_injection_script(
 
     format!(
         r#"
-JSON.stringify((function() {{
+(function() {{
+    console.log('[ChenChen] Starting prompt injection...');
     try {{
         // Try each input selector until we find an element
         let inputElement = null;
@@ -43,13 +44,11 @@ JSON.stringify((function() {{
         }}
 
         if (!inputElement) {{
-            return {{
-                success: false,
-                error_message: 'Input element not found. Tried selectors: ' + inputSelectors.join(', '),
-                element_found: false,
-                submit_triggered: false
-            }};
+            console.error('[ChenChen] Input element not found. Tried selectors:', inputSelectors);
+            throw new Error('Input element not found. Tried selectors: ' + inputSelectors.join(', '));
         }}
+
+        console.log('[ChenChen] Found input element:', inputElement);
 
         // Set the prompt value
         // Handle both input/textarea elements and contenteditable divs
@@ -68,7 +67,7 @@ JSON.stringify((function() {{
             inputElement.dispatchEvent(new Event('input', {{ bubbles: true }}));
         }}
 
-        console.log('Set prompt value in input element');
+        console.log('[ChenChen] Set prompt value in input element');
 
         // Try each submit selector until we find a button
         let submitButton = null;
@@ -78,41 +77,26 @@ JSON.stringify((function() {{
             const selector = submitSelectors[i];
             submitButton = document.querySelector(selector);
             if (submitButton) {{
-                console.log('Found submit button with selector:', selector);
+                console.log('[ChenChen] Found submit button with selector:', selector);
                 break;
             }}
         }}
 
         if (!submitButton) {{
-            return {{
-                success: false,
-                error_message: 'Submit button not found. Tried selectors: ' + submitSelectors.join(', '),
-                element_found: true,
-                submit_triggered: false
-            }};
+            console.error('[ChenChen] Submit button not found. Tried selectors:', submitSelectors);
+            throw new Error('Submit button not found. Tried selectors: ' + submitSelectors.join(', '));
         }}
 
         // Click the submit button
         submitButton.click();
-        console.log('Clicked submit button');
-
-        return {{
-            success: true,
-            error_message: null,
-            element_found: true,
-            submit_triggered: true
-        }};
+        console.log('[ChenChen] Successfully clicked submit button');
+        console.log('[ChenChen] Prompt injection completed successfully');
 
     }} catch (error) {{
-        console.error('Injection script error:', error);
-        return {{
-            success: false,
-            error_message: 'JavaScript error: ' + error.message,
-            element_found: false,
-            submit_triggered: false
-        }};
+        console.error('[ChenChen] Injection script error:', error);
+        throw error;
     }}
-}}()));
+}}());
 "#,
         input_selectors = format_selector_array(input_selectors),
         submit_selectors = format_selector_array(submit_selectors),

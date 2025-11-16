@@ -60,11 +60,13 @@ export async function initPromptExecutionListener(): Promise<void> {
     try {
       // Execute the script in the webview
       console.log(`[PromptExecution] Executing script in ${provider_id} webview`);
+      console.log(`[PromptExecution] Script preview:`, script.substring(0, 200) + '...');
+
       await activeWebview.webview.eval(script);
 
-      // For now, assume success since eval() doesn't return a value
-      // In a real implementation, the script should communicate results via events or postMessage
-      console.log(`[PromptExecution] Script executed successfully in ${provider_id}`);
+      // If eval() doesn't throw, assume success
+      // Check the provider webview console for detailed [ChenChen] logs
+      console.log(`[PromptExecution] Script executed without errors in ${provider_id}`);
 
       // Report success to backend
       await reportExecutionResult({
@@ -75,7 +77,8 @@ export async function initPromptExecutionListener(): Promise<void> {
         submit_triggered: true,
       });
     } catch (error) {
-      console.error(`[PromptExecution] Failed to execute script in ${provider_id}:`, error);
+      console.error(`[PromptExecution] Script execution threw error in ${provider_id}:`, error);
+      console.error(`[PromptExecution] Check the ${provider_id} webview console for [ChenChen] error logs`);
 
       // Report failure to backend
       await reportExecutionResult({
