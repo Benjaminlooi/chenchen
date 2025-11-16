@@ -76,14 +76,7 @@
 
   // Debounced layout update for performance (T152)
   function debouncedUpdateLayout() {
-    if (layoutDebounceTimer) {
-      clearTimeout(layoutDebounceTimer);
-    }
-
-    layoutDebounceTimer = setTimeout(() => {
-      updateLayout();
-      layoutDebounceTimer = null;
-    }, 5); // 50ms debounce delay - reduced for snappier UI response
+    updateLayout();
   }
 
   function handleProvidersChanged(event: CustomEvent) {
