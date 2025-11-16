@@ -171,19 +171,21 @@
     if (layout && layout.panel_dimensions.length > 0 && layoutContainerElement) {
       // Wait for DOM to update with new ProviderPanel components
       tick().then(() => {
-        // Add an additional frame delay to ensure all rendering is complete
+        // Double RAF ensures browser has painted the layout changes
         requestAnimationFrame(() => {
-          const bounds = calculatePanelBounds();
-          console.log('Calculated bounds:', bounds);
-          if (bounds.length > 0) {
-            syncProviderWebviews(bounds)
-              .then(() => {
-                console.log('Provider webviews synced successfully');
-              })
-              .catch((error) => {
-                console.error('Failed to sync provider webviews:', error);
-              });
-          }
+          requestAnimationFrame(() => {
+            const bounds = calculatePanelBounds();
+            console.log('Calculated bounds:', bounds);
+            if (bounds.length > 0) {
+              syncProviderWebviews(bounds)
+                .then(() => {
+                  console.log('Provider webviews synced successfully');
+                })
+                .catch((error) => {
+                  console.error('Failed to sync provider webviews:', error);
+                });
+            }
+          });
         });
       });
     }
