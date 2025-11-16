@@ -8,6 +8,9 @@
   import type { LayoutConfiguration, Provider, Submission } from '../types';
   import '../app.css'; // Import global styles
 
+  // TEMPORARY: Disable webviews for design work
+  const ENABLE_WEBVIEWS = false;
+
   // State
   let layout = $state<LayoutConfiguration | null>(null);
   let providers = $state<Provider[]>([]);
@@ -45,7 +48,6 @@
 
   async function updateLayout() {
     const selectedProviders = providers.filter((p) => p.is_selected);
-      layout = null;
 
     if (selectedProviders.length === 0) {
       layout = null;
@@ -93,6 +95,8 @@
   }
 
   function updateWebviewPositions() {
+    if (!ENABLE_WEBVIEWS) return; // Skip when disabled
+
     if (layout && layout.panel_dimensions.length > 0 && layoutContainerElement) {
       const bounds = calculatePanelBounds();
       if (bounds.length > 0) {
@@ -139,6 +143,8 @@
 
   // Sync webviews when layout changes (providers selected/deselected)
   $effect(() => {
+    if (!ENABLE_WEBVIEWS) return; // Skip when disabled
+
     if (layout && layout.panel_dimensions.length > 0 && layoutContainerElement) {
       const bounds = calculatePanelBounds();
       if (bounds.length > 0) {
