@@ -69,28 +69,37 @@ pub fn generate_injection_script(
 
         console.log('[ChenChen] Set prompt value in input element');
 
-        // Try each submit selector until we find a button
-        let submitButton = null;
-        const submitSelectors = {submit_selectors};
+        // Wait for the framework to process input events and update the DOM
+        // Modern frameworks (React, Vue, etc.) update asynchronously
+        setTimeout(() => {{
+            try {{
+                // Try each submit selector until we find a button
+                let submitButton = null;
+                const submitSelectors = {submit_selectors};
 
-        for (let i = 0; i < submitSelectors.length; i++) {{
-            const selector = submitSelectors[i];
-            submitButton = document.querySelector(selector);
-            if (submitButton) {{
-                console.log('[ChenChen] Found submit button with selector:', selector);
-                break;
+                for (let i = 0; i < submitSelectors.length; i++) {{
+                    const selector = submitSelectors[i];
+                    submitButton = document.querySelector(selector);
+                    if (submitButton) {{
+                        console.log('[ChenChen] Found submit button with selector:', selector);
+                        break;
+                    }}
+                }}
+
+                if (!submitButton) {{
+                    console.error('[ChenChen] Submit button not found. Tried selectors:', submitSelectors);
+                    throw new Error('Submit button not found. Tried selectors: ' + submitSelectors.join(', '));
+                }}
+
+                // Click the submit button
+                submitButton.click();
+                console.log('[ChenChen] Successfully clicked submit button');
+                console.log('[ChenChen] Prompt injection completed successfully');
+            }} catch (error) {{
+                console.error('[ChenChen] Error in delayed submit:', error);
+                throw error;
             }}
-        }}
-
-        if (!submitButton) {{
-            console.error('[ChenChen] Submit button not found. Tried selectors:', submitSelectors);
-            throw new Error('Submit button not found. Tried selectors: ' + submitSelectors.join(', '));
-        }}
-
-        // Click the submit button
-        submitButton.click();
-        console.log('[ChenChen] Successfully clicked submit button');
-        console.log('[ChenChen] Prompt injection completed successfully');
+        }}, 300); // 300ms delay to allow framework to process events
 
     }} catch (error) {{
         console.error('[ChenChen] Injection script error:', error);
