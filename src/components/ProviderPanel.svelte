@@ -39,7 +39,7 @@
     <h3>{providerName}</h3>
   </div>
 
-  <div class="panel-content">
+  <div class="panel-content" data-webview-target>
     <!-- Debug border to visualize panel bounds -->
     <div class="debug-border"></div>
     <div class="webview-placeholder" aria-hidden="true">
