@@ -32,11 +32,14 @@ export async function syncProviderWebviews(bounds: PanelBounds[]): Promise<void>
 
   console.log('[ProviderWebviews] Syncing webviews via Rust backend', bounds);
 
+  const activeProviderIds = new Set<ProviderId>();
+
   for (const bound of bounds) {
     if (bound.width <= 0 || bound.height <= 0) {
       continue;
     }
 
+    activeProviderIds.add(bound.providerId);
     const url = getProviderUrl(bound.providerId);
 
     try {
@@ -55,6 +58,20 @@ export async function syncProviderWebviews(bounds: PanelBounds[]): Promise<void>
       console.error(`[ProviderWebviews] Failed to sync webview for ${bound.providerId}:`, error);
     }
   }
+
+  const providersToDispose = [...createdWebviews].filter(
+    (providerId) => !activeProviderIds.has(providerId)
+  );
+
+  for (const providerId of providersToDispose) {
+    try {
+      await disposeProviderWebview(providerId);
+      createdWebviews.delete(providerId);
+      console.log(`[ProviderWebviews] Disposed webview for ${providerId}`);
+    } catch (error) {
+      console.error(`[ProviderWebviews] Failed to dispose webview for ${providerId}:`, error);
+    }
+  }
 }
 
 export async function focusProviderWebview(providerId: ProviderId): Promise<void> {
@@ -66,4 +83,8 @@ export async function focusProviderWebview(providerId: ProviderId): Promise<void
 export async function disposeAllProviderWebviews(): Promise<void> {
   // Cleanup handled by Tauri when app closes
   console.log('[ProviderWebviews] Dispose all requested');
+}
+
+async function disposeProviderWebview(providerId: ProviderId): Promise<void> {
+  await invoke('dispose_provider_webview', { providerId });
 }
