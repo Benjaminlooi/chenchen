@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import ProviderSelector from '../components/ProviderSelector.svelte';
   import ProviderPanel from '../components/ProviderPanel.svelte';
   import PromptInput from '../components/PromptInput.svelte';
@@ -163,16 +163,19 @@
     if (!ENABLE_WEBVIEWS) return; // Skip when disabled
 
     if (layout && layout.panel_dimensions.length > 0 && layoutContainerElement) {
-      const bounds = calculatePanelBounds();
-      if (bounds.length > 0) {
-        syncProviderWebviews(bounds)
-          .then(() => {
-            console.log('Provider webviews synced successfully');
-          })
-          .catch((error) => {
-            console.error('Failed to sync provider webviews:', error);
-          });
-      }
+      // Wait for DOM to update with new ProviderPanel components
+      tick().then(() => {
+        const bounds = calculatePanelBounds();
+        if (bounds.length > 0) {
+          syncProviderWebviews(bounds)
+            .then(() => {
+              console.log('Provider webviews synced successfully');
+            })
+            .catch((error) => {
+              console.error('Failed to sync provider webviews:', error);
+            });
+        }
+      });
     }
   });
 </script>
