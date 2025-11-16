@@ -115,7 +115,7 @@ pub async fn submit_prompt(
     prompt: String,
 ) -> Result<Vec<crate::status::Submission>, CommandError> {
     use crate::injection::injector::Injector;
-    use crate::types::ExecutePromptPayload;
+    use std::sync::Arc;
 
     log_info!("Command: submit_prompt called", {
         "command": "submit_prompt",
@@ -187,21 +187,60 @@ pub async fn submit_prompt(
             script.len()
         );
 
-        // Emit event for frontend to execute the script
-        let payload = ExecutePromptPayload {
-            submission_id: submission.id.clone(),
-            provider_id: provider.id,
-            script,
-        };
+        // Execute the script in the webview
+        let label = format!("{}-webview", provider.id.as_str().to_lowercase());
+        let submission_id = submission.id.clone();
+        let provider_id = provider.id;
 
-        app.emit("execute-prompt", payload).map_err(|e| {
-            error!("Failed to emit execute-prompt event: {}", e);
-            CommandError::internal("Failed to emit execution event")
-        })?;
+        // Clone for async execution
+        let app_clone = app.clone();
+        let script_clone = script.clone();
+        let status_tracker = Arc::clone(&state.status_tracker);
 
-        log_info!("Emitted execute-prompt event", {
-            "submission_id": &submission.id,
-            "provider_id": format!("{:?}", provider.id)
+        // Spawn async task to execute
+        tauri::async_runtime::spawn(async move {
+            use tauri::Manager;
+
+            // Get the webview
+            let webview = match app_clone.get_webview_window(&label) {
+                Some(wv) => wv,
+                None => {
+                    log_error!("Webview not found for execution", {
+                        "submission_id": &submission_id,
+                        "provider_id": format!("{:?}", provider_id),
+                        "label": &label
+                    });
+                    let _ = status_tracker.fail_submission(
+                        &submission_id,
+                        crate::types::SubmissionErrorType::InjectionFailed,
+                        format!("Webview not found: {}", label),
+                    );
+                    return;
+                }
+            };
+
+            // Execute the script
+            match webview.eval(&script_clone) {
+                Ok(_) => {
+                    log_info!("Script executed successfully", {
+                        "submission_id": &submission_id,
+                        "provider_id": format!("{:?}", provider_id)
+                    });
+                    let _ = status_tracker.succeed_submission(&submission_id);
+                }
+                Err(e) => {
+                    log_error!("Script execution failed", {
+                        "submission_id": &submission_id,
+                        "provider_id": format!("{:?}", provider_id),
+                        "error": e.to_string()
+                    });
+                    let _ = status_tracker.fail_submission(
+                        &submission_id,
+                        crate::types::SubmissionErrorType::InjectionFailed,
+                        e.to_string(),
+                    );
+                }
+            }
         });
 
         submissions.push(submission);
@@ -210,6 +249,66 @@ pub async fn submit_prompt(
     info!("Created and dispatched {} submissions", submissions.len());
 
     Ok(submissions)
+}
+
+/// Creates or updates a provider webview
+#[tauri::command]
+pub async fn sync_provider_webview(
+    app: tauri::AppHandle,
+    provider_id: ProviderId,
+    url: String,
+    x: f64,
+    y: f64,
+    width: f64,
+    height: f64,
+) -> Result<(), CommandError> {
+    use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
+    use tauri::Position;
+    use tauri::Size;
+
+    let label = format!("{}-webview", provider_id.as_str().to_lowercase());
+
+    log_info!("Syncing provider webview", {
+        "provider_id": format!("{:?}", provider_id),
+        "label": &label,
+        "position": format!("({}, {})", x, y),
+        "size": format!("{}x{}", width, height)
+    });
+
+    // Check if webview already exists
+    if let Some(webview) = app.get_webview_window(&label) {
+        // Update position and size
+        webview.set_position(Position::Logical(tauri::LogicalPosition { x, y }))
+            .map_err(|e| CommandError::internal(format!("Failed to set position: {}", e)))?;
+
+        webview.set_size(Size::Logical(tauri::LogicalSize { width, height }))
+            .map_err(|e| CommandError::internal(format!("Failed to set size: {}", e)))?;
+
+        log_info!("Updated existing webview", {
+            "label": &label
+        });
+    } else {
+        // Create new webview
+        let _webview = WebviewWindowBuilder::new(&app, &label, WebviewUrl::External(url.parse().unwrap()))
+            .title(&format!("{} - ChenChen", provider_id.as_str()))
+            .position(x, y)
+            .inner_size(width, height)
+            .visible(true)
+            .build()
+            .map_err(|e| {
+                log_error!("Failed to create webview", {
+                    "label": &label,
+                    "error": e.to_string()
+                });
+                CommandError::internal(format!("Failed to create webview: {}", e))
+            })?;
+
+        log_info!("Created new webview", {
+            "label": &label
+        });
+    }
+
+    Ok(())
 }
 
 /// Gets the status of a specific submission
