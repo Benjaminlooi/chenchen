@@ -318,6 +318,38 @@ pub async fn sync_provider_webview(
     Ok(())
 }
 
+/// Disposes an existing provider webview when it is no longer needed
+#[tauri::command]
+pub async fn dispose_provider_webview(
+    app: tauri::AppHandle,
+    provider_id: ProviderId,
+) -> Result<(), CommandError> {
+    use tauri::Manager;
+
+    let label = format!("{}-webview", provider_id.as_str().to_lowercase());
+
+    log_info!("Disposing provider webview", {
+        "provider_id": format!("{:?}", provider_id),
+        "label": &label
+    });
+
+    if let Some(webview) = app.get_webview(&label) {
+        webview
+            .close()
+            .map_err(|e| CommandError::internal(format!("Failed to close webview: {}", e)))?;
+
+        log_info!("Closed provider webview", {
+            "label": &label
+        });
+    } else {
+        log_info!("No provider webview found to dispose", {
+            "label": &label
+        });
+    }
+
+    Ok(())
+}
+
 /// Gets the status of a specific submission
 #[tauri::command]
 pub fn get_submission_status(
@@ -380,4 +412,3 @@ pub fn report_execution_result(
 
     Ok(())
 }
-
