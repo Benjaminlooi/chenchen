@@ -7,6 +7,7 @@ use crate::log_error;
 use crate::log_info;
 use crate::types::ProviderId;
 use crate::webview::WebviewManager;
+use tauri::AppHandle;
 
 /// Manages JavaScript injection into provider webviews
 pub struct Injector {}
@@ -51,13 +52,14 @@ impl Injector {
         script
     }
 
-    /// Executes an injection script in a webview
+    /// Executes an injection script in an existing webview
     ///
     /// This executes the JavaScript code in the provider's webview and parses the result.
     /// The script should return a JSON object with the InjectionResult structure.
     ///
     /// # Arguments
-    /// * `webview_manager` - The webview manager to execute the script in
+    /// * `app` - The Tauri app handle
+    /// * `webview_manager` - The webview manager
     /// * `provider_id` - The provider to execute the script for
     /// * `script` - The JavaScript code to execute
     ///
@@ -65,6 +67,7 @@ impl Injector {
     /// Result containing the parsed InjectionResult or an error message
     pub async fn execute(
         &self,
+        app: &AppHandle,
         webview_manager: &WebviewManager,
         provider_id: ProviderId,
         script: &str,
@@ -74,9 +77,9 @@ impl Injector {
             "script_length": script.len()
         });
 
-        // Execute the script in the webview
+        // Execute the script in the existing webview
         let result_str = webview_manager
-            .execute_script(provider_id, script)
+            .execute_script(app, provider_id, script)
             .await?;
 
         log_info!("Raw script result", {
