@@ -8,6 +8,7 @@ use crate::state::AppState;
 use crate::types::{CommandError, ProviderId};
 use crate::{log_error, log_info};
 use log::{error, info};
+use std::sync::Arc;
 use tauri::State;
 
 /// Gets all available providers
@@ -109,11 +110,13 @@ pub fn get_layout_configuration(
 ///
 /// Returns the created submissions with their IDs for status tracking
 #[tauri::command]
-pub fn submit_prompt(
-    state: State<AppState>,
+pub async fn submit_prompt(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
     prompt: String,
 ) -> Result<Vec<crate::status::Submission>, CommandError> {
     use crate::injection::injector::Injector;
+    use crate::types::SubmissionErrorType;
 
     log_info!("Command: submit_prompt called", {
         "command": "submit_prompt",
@@ -169,6 +172,9 @@ pub fn submit_prompt(
             submission.id, provider.id
         );
 
+        let submission_id = submission.id.clone();
+        let provider_id = provider.id;
+
         // Get provider config for selectors
         let config = provider_configs.get_config(provider.id)?;
 
@@ -182,18 +188,113 @@ pub fn submit_prompt(
             script.len()
         );
 
-        // TODO T111: Spawn async task for each submission (concurrent execution)
-        // TODO T112: Call Injector::execute() for each provider in async task
-        // TODO T113: Update Submission status based on injection result
-        // TODO T114: Emit submission_status_changed event after each status update
-        //
-        // For now, submissions remain in Pending state
-        // Actual webview.eval() execution will be implemented when webview handles are available
+        // Clone necessary data for the async task
+        let app_clone = app.clone();
+        let provider_url = provider.url.clone();
+        let provider_name = provider.name.clone();
+        let script_clone = script.clone();
+
+        // Clone Arc references for the async task
+        let status_tracker = Arc::clone(&state.status_tracker);
+        let webview_manager = Arc::clone(&state.webview_manager);
+
+        // T111: Spawn async task for concurrent execution
+        tauri::async_runtime::spawn(async move {
+
+            // Start the submission
+            if let Err(e) = status_tracker.start_submission(&submission_id) {
+                log_error!("Failed to start submission", {
+                    "submission_id": &submission_id,
+                    "provider_id": format!("{:?}", provider_id),
+                    "error": e.to_string()
+                });
+                return;
+            }
+
+            log_info!("Starting submission execution", {
+                "submission_id": &submission_id,
+                "provider_id": format!("{:?}", provider_id)
+            });
+
+            // Create or get webview for this provider
+            if let Err(e) = webview_manager.get_or_create_webview(
+                &app_clone,
+                provider_id,
+                &provider_url,
+                &provider_name,
+            ) {
+                log_error!("Failed to create webview", {
+                    "submission_id": &submission_id,
+                    "provider_id": format!("{:?}", provider_id),
+                    "error": &e
+                });
+                let _ = status_tracker.fail_submission(
+                    &submission_id,
+                    SubmissionErrorType::NetworkError,
+                    format!("Failed to create webview: {}", e),
+                );
+                return;
+            }
+
+            // Wait for webview to load (give it some time to navigate)
+            // Use a simple timer by spawning a blocking sleep in the async runtime
+            let _ = tauri::async_runtime::spawn_blocking(|| {
+                std::thread::sleep(std::time::Duration::from_secs(2));
+            }).await;
+
+            // T112: Execute the injection
+            let execution_result = Injector::new()
+                .unwrap()
+                .execute(&*webview_manager, provider_id, &script_clone)
+                .await;
+
+            // T113: Update submission status based on result
+            match execution_result {
+                Ok(result) if result.success => {
+                    log_info!("Submission succeeded", {
+                        "submission_id": &submission_id,
+                        "provider_id": format!("{:?}", provider_id)
+                    });
+                    let _ = status_tracker.succeed_submission(&submission_id);
+                }
+                Ok(result) => {
+                    let error_msg = result.error_message.unwrap_or_else(|| "Unknown error".to_string());
+                    log_error!("Submission failed", {
+                        "submission_id": &submission_id,
+                        "provider_id": format!("{:?}", provider_id),
+                        "error": &error_msg
+                    });
+                    let _ = status_tracker.fail_submission(
+                        &submission_id,
+                        SubmissionErrorType::ElementNotFound,
+                        error_msg,
+                    );
+                }
+                Err(e) => {
+                    log_error!("Execution error", {
+                        "submission_id": &submission_id,
+                        "provider_id": format!("{:?}", provider_id),
+                        "error": &e
+                    });
+                    let _ = status_tracker.fail_submission(
+                        &submission_id,
+                        SubmissionErrorType::NetworkError,
+                        e,
+                    );
+                }
+            }
+
+            // T114: Event emission happens in status_tracker.update_status
+            log_info!("Submission task completed", {
+                "submission_id": &submission_id,
+                "provider_id": format!("{:?}", provider_id)
+            });
+        });
 
         submissions.push(submission);
     }
 
-    info!("Created {} submissions", submissions.len());
+    info!("Created and dispatched {} submissions", submissions.len());
 
     Ok(submissions)
 }

@@ -27,7 +27,7 @@ pub fn generate_injection_script(
 
     format!(
         r#"
-(function() {{
+JSON.stringify((function() {{
     try {{
         // Try each input selector until we find an element
         let inputElement = null;
@@ -70,48 +70,37 @@ pub fn generate_injection_script(
 
         console.log('Set prompt value in input element');
 
-        // Small delay to allow any reactive frameworks to process the input
-        setTimeout(function() {{
-            // Try each submit selector until we find a button
-            let submitButton = null;
-            const submitSelectors = {submit_selectors};
+        // Try each submit selector until we find a button
+        let submitButton = null;
+        const submitSelectors = {submit_selectors};
 
-            for (let i = 0; i < submitSelectors.length; i++) {{
-                const selector = submitSelectors[i];
-                submitButton = document.querySelector(selector);
-                if (submitButton) {{
-                    console.log('Found submit button with selector:', selector);
-                    break;
-                }}
+        for (let i = 0; i < submitSelectors.length; i++) {{
+            const selector = submitSelectors[i];
+            submitButton = document.querySelector(selector);
+            if (submitButton) {{
+                console.log('Found submit button with selector:', selector);
+                break;
             }}
+        }}
 
-            if (!submitButton) {{
-                return {{
-                    success: false,
-                    error_message: 'Submit button not found. Tried selectors: ' + submitSelectors.join(', '),
-                    element_found: true,
-                    submit_triggered: false
-                }};
-            }}
-
-            // Click the submit button
-            submitButton.click();
-            console.log('Clicked submit button');
-
+        if (!submitButton) {{
             return {{
-                success: true,
-                error_message: null,
+                success: false,
+                error_message: 'Submit button not found. Tried selectors: ' + submitSelectors.join(', '),
                 element_found: true,
-                submit_triggered: true
+                submit_triggered: false
             }};
-        }}, 100);
+        }}
 
-        // Return success for the input setting part
+        // Click the submit button
+        submitButton.click();
+        console.log('Clicked submit button');
+
         return {{
             success: true,
             error_message: null,
             element_found: true,
-            submit_triggered: false
+            submit_triggered: true
         }};
 
     }} catch (error) {{
@@ -123,7 +112,7 @@ pub fn generate_injection_script(
             submit_triggered: false
         }};
     }}
-}})();
+}}()));
 "#,
         input_selectors = format_selector_array(input_selectors),
         submit_selectors = format_selector_array(submit_selectors),
