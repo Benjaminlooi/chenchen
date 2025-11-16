@@ -146,6 +146,12 @@
 
         // Get the actual rendered bounds of the content area
         const contentRect = targetElement.getBoundingClientRect();
+        console.log(`Panel bounds for ${dimension.provider_id}:`, {
+          x: contentRect.x,
+          y: contentRect.y,
+          width: contentRect.width,
+          height: contentRect.height,
+        });
 
         return {
           providerId: dimension.provider_id,
@@ -165,16 +171,20 @@
     if (layout && layout.panel_dimensions.length > 0 && layoutContainerElement) {
       // Wait for DOM to update with new ProviderPanel components
       tick().then(() => {
-        const bounds = calculatePanelBounds();
-        if (bounds.length > 0) {
-          syncProviderWebviews(bounds)
-            .then(() => {
-              console.log('Provider webviews synced successfully');
-            })
-            .catch((error) => {
-              console.error('Failed to sync provider webviews:', error);
-            });
-        }
+        // Add an additional frame delay to ensure all rendering is complete
+        requestAnimationFrame(() => {
+          const bounds = calculatePanelBounds();
+          console.log('Calculated bounds:', bounds);
+          if (bounds.length > 0) {
+            syncProviderWebviews(bounds)
+              .then(() => {
+                console.log('Provider webviews synced successfully');
+              })
+              .catch((error) => {
+                console.error('Failed to sync provider webviews:', error);
+              });
+          }
+        });
       });
     }
   });
