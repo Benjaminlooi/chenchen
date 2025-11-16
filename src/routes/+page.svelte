@@ -124,26 +124,38 @@
   }
 
   // Convert percentage-based PanelDimensions to pixel-based PanelBounds
+  // Uses data-webview-target elements to position webviews within panel content areas
   function calculatePanelBounds(): PanelBounds[] {
     if (!layout || !layoutContainerElement) {
       return [];
     }
 
-    const rect = layoutContainerElement.getBoundingClientRect();
-    const containerWidth = rect.width;
-    const containerHeight = rect.height;
+    const container = layoutContainerElement; // Store for TypeScript null check
 
-    // rect.x and rect.y give us the offset from the window's top-left
-    const containerOffsetX = rect.x;
-    const containerOffsetY = rect.y;
+    return layout.panel_dimensions
+      .map((dimension) => {
+        // Query for the webview target element within this specific provider panel
+        const targetElement = container.querySelector(
+          `[data-provider-id="${dimension.provider_id}"] [data-webview-target]`
+        );
 
-    return layout.panel_dimensions.map((dimension) => ({
-      providerId: dimension.provider_id,
-      x: containerOffsetX + (dimension.x * containerWidth),
-      y: containerOffsetY + (dimension.y * containerHeight),
-      width: dimension.width * containerWidth,
-      height: dimension.height * containerHeight,
-    }));
+        if (!targetElement) {
+          console.warn(`No webview target found for provider: ${dimension.provider_id}`);
+          return null;
+        }
+
+        // Get the actual rendered bounds of the content area
+        const contentRect = targetElement.getBoundingClientRect();
+
+        return {
+          providerId: dimension.provider_id,
+          x: contentRect.x,
+          y: contentRect.y,
+          width: contentRect.width,
+          height: contentRect.height,
+        };
+      })
+      .filter((bounds): bounds is PanelBounds => bounds !== null);
   }
 
   // Sync webviews when layout changes (providers selected/deselected)
