@@ -236,7 +236,7 @@
 
   .dropdown-menu {
     position: absolute;
-    top: calc(100% + 4px);
+    bottom: calc(100% + 4px);
     left: 0;
     min-width: 100%;
     background: rgba(255, 255, 255, 0.98);
@@ -246,13 +246,13 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
     padding: 0.25rem;
     z-index: 1000;
-    animation: dropdown-slide 0.2s ease;
+    animation: dropdown-slide-up 0.2s ease;
   }
 
-  @keyframes dropdown-slide {
+  @keyframes dropdown-slide-up {
     from {
       opacity: 0;
-      transform: translateY(-8px);
+      transform: translateY(8px);
     }
     to {
       opacity: 1;
