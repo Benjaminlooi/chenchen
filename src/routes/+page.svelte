@@ -294,6 +294,8 @@
     border-top: 1px solid rgba(0, 0, 0, 0.06);
     flex-shrink: 0;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
+    position: relative;
+    z-index: 100;
   }
 
   .divider {
