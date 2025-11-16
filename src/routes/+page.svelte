@@ -45,6 +45,7 @@
 
   async function updateLayout() {
     const selectedProviders = providers.filter((p) => p.is_selected);
+      layout = null;
 
     if (selectedProviders.length === 0) {
       layout = null;
