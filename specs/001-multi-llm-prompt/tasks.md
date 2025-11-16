@@ -28,17 +28,17 @@ Based on plan.md structure:
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create Tauri + Svelte project using `npm create tauri-app@latest` with TypeScript template
-- [ ] T002 Configure Cargo.toml with dependencies: tauri 2.x, serde, uuid, chrono, log, schemars
-- [ ] T003 [P] Configure package.json with dependencies: vite, typescript, vitest, @testing-library/svelte, zod
-- [ ] T004 [P] Configure Cargo.toml dev-dependencies: mockall, pretty_assertions, tauri (test feature)
-- [ ] T005 [P] Create config/providers.json with provider selector configurations (ChatGPT, Gemini, Claude)
-- [ ] T006 Update tauri.conf.json with app identifier "com.chenchen.app", version 0.1.0, window dimensions
-- [ ] T007 [P] Create src-tauri/tests/contract/ directory for library API tests
-- [ ] T008 [P] Create src-tauri/tests/integration/ directory for cross-library integration tests
-- [ ] T009 [P] Create src-tauri/tests/unit/ directory for complex logic unit tests
+- [X] T001 Create Tauri + Svelte project using `npm create tauri-app@latest` with TypeScript template
+- [X] T002 Configure Cargo.toml with dependencies: tauri 2.x, serde, uuid, chrono, log, schemars
+- [X] T003 [P] Configure package.json with dependencies: vite, typescript, vitest, @testing-library/svelte, zod
+- [X] T004 [P] Configure Cargo.toml dev-dependencies: mockall, pretty_assertions, tauri (test feature)
+- [X] T005 [P] Create config/providers.json with provider selector configurations (ChatGPT, Gemini, Claude)
+- [X] T006 Update tauri.conf.json with app identifier "com.chenchen.app", version 0.1.0, window dimensions
+- [X] T007 [P] Create src-tauri/tests/contract/ directory for library API tests
+- [X] T008 [P] Create src-tauri/tests/integration/ directory for cross-library integration tests
+- [X] T009 [P] Create src-tauri/tests/unit/ directory for complex logic unit tests
 - [ ] T010 [P] Create tests/components/ directory for Svelte component tests
-- [ ] T011 [P] Setup Rust logging with env_logger in src-tauri/src/lib.rs
+- [X] T011 [P] Setup Rust logging with env_logger in src-tauri/src/lib.rs
 - [ ] T012 [P] Configure Vitest in vite.config.ts with jsdom environment
 
 **Checkpoint**: Project structure initialized, dependencies configured, test infrastructure ready
@@ -51,15 +51,15 @@ Based on plan.md structure:
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T013 Define ProviderId enum in src-tauri/src/types.rs (ChatGPT, Gemini, Claude)
-- [ ] T014 [P] Define SubmissionStatus enum in src-tauri/src/types.rs (Pending, InProgress, Retrying, Success, Failed)
-- [ ] T015 [P] Define SubmissionErrorType enum in src-tauri/src/types.rs (Timeout, NetworkError, AuthenticationError, etc.)
-- [ ] T016 [P] Define CommandError struct in src-tauri/src/types.rs with code and message fields
-- [ ] T017 Create AppState struct in src-tauri/src/state.rs to hold shared application state
-- [ ] T018 Register AppState in src-tauri/src/lib.rs with tauri::Builder::manage()
-- [ ] T019 Create src-tauri/src/commands.rs with empty module for Tauri command registration
-- [ ] T020 [P] Create TypeScript type definitions in src/types.ts mirroring Rust types using zod
-- [ ] T021 [P] Create src/services/tauri.ts wrapper for invoke() with type safety
+- [X] T013 Define ProviderId enum in src-tauri/src/types.rs (ChatGPT, Gemini, Claude)
+- [X] T014 [P] Define SubmissionStatus enum in src-tauri/src/types.rs (Pending, InProgress, Retrying, Success, Failed)
+- [X] T015 [P] Define SubmissionErrorType enum in src-tauri/src/types.rs (Timeout, NetworkError, AuthenticationError, etc.)
+- [X] T016 [P] Define CommandError struct in src-tauri/src/types.rs with code and message fields
+- [X] T017 Create AppState struct in src-tauri/src/state.rs to hold shared application state
+- [X] T018 Register AppState in src-tauri/src/lib.rs with tauri::Builder::manage()
+- [X] T019 Create src-tauri/src/commands.rs with empty module for Tauri command registration
+- [X] T020 [P] Create TypeScript type definitions in src/types.ts mirroring Rust types using zod
+- [X] T021 [P] Create src/services/tauri.ts wrapper for invoke() with type safety
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -73,28 +73,28 @@ Based on plan.md structure:
 
 ### Tests for User Story 2 (TDD - Write FIRST)
 
-- [ ] T022 [P] [US2] Contract test for ProviderManager::new() returns 3 providers in src-tauri/tests/contract/provider_manager_test.rs
-- [ ] T023 [P] [US2] Contract test for ProviderManager::get_all_providers() in src-tauri/tests/contract/provider_manager_test.rs
-- [ ] T024 [P] [US2] Contract test for ProviderManager::update_selection() validates minimum 1 selected in src-tauri/tests/contract/provider_manager_test.rs
-- [ ] T025 [P] [US2] Contract test for ProviderManager::update_selection() validates maximum 3 selected in src-tauri/tests/contract/provider_manager_test.rs
+- [X] T022 [P] [US2] Contract test for ProviderManager::new() returns 3 providers in src-tauri/tests/contract/provider_manager_test.rs
+- [X] T023 [P] [US2] Contract test for ProviderManager::get_all_providers() in src-tauri/tests/contract/provider_manager_test.rs
+- [X] T024 [P] [US2] Contract test for ProviderManager::update_selection() validates minimum 1 selected in src-tauri/tests/contract/provider_manager_test.rs
+- [X] T025 [P] [US2] Contract test for ProviderManager::update_selection() validates maximum 3 selected in src-tauri/tests/contract/provider_manager_test.rs
 - [ ] T026 [P] [US2] Component test for ProviderSelector.svelte in tests/components/ProviderSelector.test.ts
 
 **⚠️ VERIFY**: Run `cargo test provider_manager_test` - all tests should FAIL before proceeding
 
 ### Implementation for User Story 2
 
-- [ ] T027 [US2] Create Provider struct in src-tauri/src/providers/mod.rs with id, name, url, is_selected, is_authenticated, selector_config_id
-- [ ] T028 [US2] Implement ProviderManager struct in src-tauri/src/providers/manager.rs with new(), get_all_providers(), update_selection()
-- [ ] T029 [US2] Add validation logic: prevent deselecting last provider (FR-004) in src-tauri/src/providers/manager.rs
-- [ ] T030 [US2] Add validation logic: prevent selecting more than 3 providers (TC-005) in src-tauri/src/providers/manager.rs
-- [ ] T031 [US2] Implement get_providers Tauri command in src-tauri/src/commands.rs
-- [ ] T032 [US2] Implement update_provider_selection Tauri command in src-tauri/src/commands.rs
-- [ ] T033 [US2] Register get_providers and update_provider_selection commands in src-tauri/src/lib.rs
-- [ ] T034 [US2] Create ProviderSelector.svelte component in src/components/ProviderSelector.svelte
-- [ ] T035 [US2] Add provider selection UI with checkboxes bound to state in ProviderSelector.svelte
-- [ ] T036 [US2] Wire up invoke("get_providers") on component mount in ProviderSelector.svelte
-- [ ] T037 [US2] Wire up invoke("update_provider_selection") on checkbox change in ProviderSelector.svelte
-- [ ] T038 [US2] Add error handling for validation errors in ProviderSelector.svelte
+- [X] T027 [US2] Create Provider struct in src-tauri/src/providers/mod.rs with id, name, url, is_selected, is_authenticated, selector_config_id
+- [X] T028 [US2] Implement ProviderManager struct in src-tauri/src/providers/manager.rs with new(), get_all_providers(), update_selection()
+- [X] T029 [US2] Add validation logic: prevent deselecting last provider (FR-004) in src-tauri/src/providers/manager.rs
+- [X] T030 [US2] Add validation logic: prevent selecting more than 3 providers (TC-005) in src-tauri/src/providers/manager.rs
+- [X] T031 [US2] Implement get_providers Tauri command in src-tauri/src/commands.rs
+- [X] T032 [US2] Implement update_provider_selection Tauri command in src-tauri/src/commands.rs
+- [X] T033 [US2] Register get_providers and update_provider_selection commands in src-tauri/src/lib.rs
+- [X] T034 [US2] Create ProviderSelector.svelte component in src/components/ProviderSelector.svelte
+- [X] T035 [US2] Add provider selection UI with checkboxes bound to state in ProviderSelector.svelte
+- [X] T036 [US2] Wire up invoke("get_providers") on component mount in ProviderSelector.svelte
+- [X] T037 [US2] Wire up invoke("update_provider_selection") on checkbox change in ProviderSelector.svelte
+- [X] T038 [US2] Add error handling for validation errors in ProviderSelector.svelte
 
 **⚠️ VERIFY**: Run `cargo test provider_manager_test` - all tests should PASS
 
@@ -110,25 +110,25 @@ Based on plan.md structure:
 
 ### Tests for Layout Configuration (TDD - Write FIRST)
 
-- [ ] T039 [P] [US1] Unit test for calculate_layout() with 1 provider (Full) in src-tauri/tests/unit/layout_calculator_test.rs
-- [ ] T040 [P] [US1] Unit test for calculate_layout() with 2 providers (VerticalSplit) in src-tauri/tests/unit/layout_calculator_test.rs
-- [ ] T041 [P] [US1] Unit test for calculate_layout() with 3 providers (Grid) in src-tauri/tests/unit/layout_calculator_test.rs
+- [X] T039 [P] [US1] Unit test for calculate_layout() with 1 provider (Full) in src-tauri/tests/unit/layout_calculator_test.rs
+- [X] T040 [P] [US1] Unit test for calculate_layout() with 2 providers (VerticalSplit) in src-tauri/tests/unit/layout_calculator_test.rs
+- [X] T041 [P] [US1] Unit test for calculate_layout() with 3 providers (Grid) in src-tauri/tests/unit/layout_calculator_test.rs
 - [ ] T042 [P] [US1] Component test for provider panel layout rendering in tests/components/ProviderPanel.test.ts
 
 **⚠️ VERIFY**: Run `cargo test layout_calculator_test` - all tests should FAIL before proceeding
 
 ### Implementation for Layout Configuration
 
-- [ ] T043 [US1] Create LayoutType enum in src-tauri/src/layout/mod.rs (Full, VerticalSplit, Grid)
-- [ ] T044 [US1] Create PanelDimension struct in src-tauri/src/layout/mod.rs (provider_id, x, y, width, height)
-- [ ] T045 [US1] Create LayoutConfiguration struct in src-tauri/src/layout/mod.rs (provider_count, layout_type, panel_dimensions)
-- [ ] T046 [US1] Implement calculate_layout() in src-tauri/src/layout/calculator.rs following data-model.md specifications
-- [ ] T047 [US1] Implement get_layout_configuration Tauri command in src-tauri/src/commands.rs
-- [ ] T048 [US1] Register get_layout_configuration command in src-tauri/src/lib.rs
-- [ ] T049 [US1] Create ProviderPanel.svelte component in src/components/ProviderPanel.svelte
-- [ ] T050 [US1] Implement CSS grid/absolute positioning for panel dimensions in ProviderPanel.svelte
-- [ ] T051 [US1] Wire up invoke("get_layout_configuration") when provider selection changes in App.svelte
-- [ ] T052 [US1] Apply panel dimensions to provider panel styles in App.svelte
+- [X] T043 [US1] Create LayoutType enum in src-tauri/src/layout/mod.rs (Full, VerticalSplit, Grid)
+- [X] T044 [US1] Create PanelDimension struct in src-tauri/src/layout/mod.rs (provider_id, x, y, width, height)
+- [X] T045 [US1] Create LayoutConfiguration struct in src-tauri/src/layout/mod.rs (provider_count, layout_type, panel_dimensions)
+- [X] T046 [US1] Implement calculate_layout() in src-tauri/src/layout/calculator.rs following data-model.md specifications
+- [X] T047 [US1] Implement get_layout_configuration Tauri command in src-tauri/src/commands.rs
+- [X] T048 [US1] Register get_layout_configuration command in src-tauri/src/lib.rs
+- [X] T049 [US1] Create ProviderPanel.svelte component in src/components/ProviderPanel.svelte
+- [X] T050 [US1] Implement CSS grid/absolute positioning for panel dimensions in ProviderPanel.svelte
+- [X] T051 [US1] Wire up invoke("get_layout_configuration") when provider selection changes in App.svelte
+- [X] T052 [US1] Apply panel dimensions to provider panel styles in App.svelte
 
 **⚠️ VERIFY**: Run `cargo test layout_calculator_test` - all tests should PASS
 
@@ -144,20 +144,20 @@ Based on plan.md structure:
 
 ### Tests for Webview Sessions (TDD - Write FIRST)
 
-- [ ] T053 [P] [US4] Contract test for WebviewManager::create_webview() on Windows/Linux in src-tauri/tests/contract/webview_manager_test.rs
-- [ ] T054 [P] [US4] Contract test for WebviewManager::create_webview() on macOS in src-tauri/tests/contract/webview_manager_test.rs
+- [X] T053 [P] [US4] Contract test for WebviewManager::create_webview() on Windows/Linux in src-tauri/tests/contract/webview_manager_test.rs
+- [X] T054 [P] [US4] Contract test for WebviewManager::create_webview() on macOS in src-tauri/tests/contract/webview_manager_test.rs
 - [ ] T055 [P] [US4] Integration test for session persistence after app restart in src-tauri/tests/integration/webview_session_test.rs
 
 **⚠️ VERIFY**: Run `cargo test webview_manager_test` - all tests should FAIL before proceeding
 
 ### Implementation for Webview Sessions
 
-- [ ] T056 [US4] Create WebviewSession struct in src-tauri/src/webview/mod.rs (provider_id, data_directory, data_store_identifier, is_persistent, last_activity)
-- [ ] T057 [US4] Implement WebviewManager struct in src-tauri/src/webview/manager.rs with create_webview() method
-- [ ] T058 [US4] Implement data_directory configuration for Windows/Linux in src-tauri/src/webview/manager.rs using app_local_data_dir()
-- [ ] T059 [US4] Implement data_store_identifier configuration for macOS in src-tauri/src/webview/manager.rs with UUID persistence
-- [ ] T060 [US4] Add platform-specific compilation flags (#[cfg(target_os)]) in src-tauri/src/webview/manager.rs
-- [ ] T061 [US4] Create WebviewInfo struct in src-tauri/src/webview/mod.rs (provider_id, label, url, is_persistent, data_path, data_store_id)
+- [X] T056 [US4] Create WebviewSession struct in src-tauri/src/webview/mod.rs (provider_id, data_directory, data_store_identifier, is_persistent, last_activity)
+- [X] T057 [US4] Implement WebviewManager struct in src-tauri/src/webview/manager.rs with create_webview() method
+- [X] T058 [US4] Implement data_directory configuration for Windows/Linux in src-tauri/src/webview/manager.rs using app_local_data_dir()
+- [X] T059 [US4] Implement data_store_identifier configuration for macOS in src-tauri/src/webview/manager.rs with UUID persistence
+- [X] T060 [US4] Add platform-specific compilation flags (#[cfg(target_os)]) in src-tauri/src/webview/manager.rs
+- [X] T061 [US4] Create WebviewInfo struct in src-tauri/src/webview/mod.rs (provider_id, label, url, is_persistent, data_path, data_store_id)
 - [ ] T062 [US4] Implement create_provider_webview Tauri command in src-tauri/src/commands.rs
 - [ ] T063 [US4] Register create_provider_webview command in src-tauri/src/lib.rs
 - [ ] T064 [US4] Wire up invoke("create_provider_webview") when user selects provider in ProviderSelector.svelte
@@ -184,12 +184,12 @@ Based on plan.md structure:
 
 ### Implementation for Provider Configuration
 
-- [ ] T068 [US1] Create ProviderSelectorConfig struct in src-tauri/src/providers/config.rs (provider_id, version, input_selectors, submit_selectors, auth_check_selectors, last_updated)
-- [ ] T069 [US1] Implement load() method to read config/providers.json in src-tauri/src/providers/config.rs
-- [ ] T070 [US1] Add validation for semver version format in src-tauri/src/providers/config.rs
-- [ ] T071 [US1] Add validation for non-empty selector arrays in src-tauri/src/providers/config.rs
-- [ ] T072 [US1] Cache loaded configs in AppState in src-tauri/src/state.rs
-- [ ] T073 [US1] Load configs during app initialization in src-tauri/src/lib.rs
+- [X] T068 [US1] Create ProviderSelectorConfig struct in src-tauri/src/providers/config.rs (provider_id, version, input_selectors, submit_selectors, auth_check_selectors, last_updated)
+- [X] T069 [US1] Implement load() method to read config/providers.json in src-tauri/src/providers/config.rs
+- [X] T070 [US1] Add validation for semver version format in src-tauri/src/providers/config.rs
+- [X] T071 [US1] Add validation for non-empty selector arrays in src-tauri/src/providers/config.rs
+- [X] T072 [US1] Cache loaded configs in AppState in src-tauri/src/state.rs
+- [X] T073 [US1] Load configs during app initialization in src-tauri/src/lib.rs
 
 **⚠️ VERIFY**: Run `cargo test provider_config_test` - all tests should PASS
 
@@ -205,21 +205,21 @@ Based on plan.md structure:
 
 ### Tests for JavaScript Injection (TDD - Write FIRST)
 
-- [ ] T074 [P] [US1] Unit test for generate_injection_script() includes input selector logic in src-tauri/tests/unit/script_generation_test.rs
-- [ ] T075 [P] [US1] Unit test for generate_injection_script() includes submit button trigger in src-tauri/tests/unit/script_generation_test.rs
+- [X] T074 [P] [US1] Unit test for generate_injection_script() includes input selector logic in src-tauri/tests/unit/script_generation_test.rs
+- [X] T075 [P] [US1] Unit test for generate_injection_script() includes submit button trigger in src-tauri/tests/unit/script_generation_test.rs
 - [ ] T076 [P] [US1] Integration test for script execution in jsdom mock environment in tests/integration/injection_execution.test.ts
-- [ ] T077 [P] [US1] Contract test for Injector::execute() returns success/failure status in src-tauri/tests/contract/injector_test.rs
+- [X] T077 [P] [US1] Contract test for Injector::execute() returns success/failure status in src-tauri/tests/contract/injector_test.rs
 
 **⚠️ VERIFY**: Run `cargo test script_generation_test && npm test injection_execution` - all tests should FAIL
 
 ### Implementation for JavaScript Injection
 
-- [ ] T078 [US1] Create Injector struct in src-tauri/src/injection/injector.rs with execute() method
-- [ ] T079 [US1] Implement generate_injection_script() in src-tauri/src/injection/script_builder.rs
-- [ ] T080 [US1] Add selector iteration logic (try each selector in array until element found) in src-tauri/src/injection/script_builder.rs
-- [ ] T081 [US1] Add input value setting logic in src-tauri/src/injection/script_builder.rs
-- [ ] T082 [US1] Add submit button click trigger logic in src-tauri/src/injection/script_builder.rs
-- [ ] T083 [US1] Add element-not-found error reporting in src-tauri/src/injection/script_builder.rs
+- [X] T078 [US1] Create Injector struct in src-tauri/src/injection/injector.rs with execute() method
+- [X] T079 [US1] Implement generate_injection_script() in src-tauri/src/injection/script_builder.rs
+- [X] T080 [US1] Add selector iteration logic (try each selector in array until element found) in src-tauri/src/injection/script_builder.rs
+- [X] T081 [US1] Add input value setting logic in src-tauri/src/injection/script_builder.rs
+- [X] T082 [US1] Add submit button click trigger logic in src-tauri/src/injection/script_builder.rs
+- [X] T083 [US1] Add element-not-found error reporting in src-tauri/src/injection/script_builder.rs
 - [ ] T084 [US1] Implement execute() to call webview.eval() with generated script in src-tauri/src/injection/injector.rs
 - [ ] T085 [US1] Add timeout handling (30 seconds per FR-007) in src-tauri/src/injection/injector.rs
 
@@ -237,12 +237,12 @@ Based on plan.md structure:
 
 ### Tests for Status Tracking (TDD - Write FIRST)
 
-- [ ] T086 [P] [US3] Unit test for Submission state machine: Pending → InProgress in src-tauri/tests/unit/status_transitions_test.rs
-- [ ] T087 [P] [US3] Unit test for Submission state machine: InProgress → Success in src-tauri/tests/unit/status_transitions_test.rs
-- [ ] T088 [P] [US3] Unit test for Submission state machine: InProgress → Retrying (on Timeout) in src-tauri/tests/unit/status_transitions_test.rs
-- [ ] T089 [P] [US3] Unit test for Submission state machine: Retrying → Failed in src-tauri/tests/unit/status_transitions_test.rs
-- [ ] T090 [P] [US3] Unit test for Submission state machine: InProgress → Failed (on AuthError, no retry) in src-tauri/tests/unit/status_transitions_test.rs
-- [ ] T091 [P] [US3] Unit test for timeout detection (now() - started_at > 30s) in src-tauri/tests/unit/timeout_logic_test.rs
+- [X] T086 [P] [US3] Unit test for Submission state machine: Pending → InProgress in src-tauri/tests/unit/status_transitions_test.rs
+- [X] T087 [P] [US3] Unit test for Submission state machine: InProgress → Success in src-tauri/tests/unit/status_transitions_test.rs
+- [X] T088 [P] [US3] Unit test for Submission state machine: InProgress → Retrying (on Timeout) in src-tauri/tests/unit/status_transitions_test.rs
+- [X] T089 [P] [US3] Unit test for Submission state machine: Retrying → Failed in src-tauri/tests/unit/status_transitions_test.rs
+- [X] T090 [P] [US3] Unit test for Submission state machine: InProgress → Failed (on AuthError, no retry) in src-tauri/tests/unit/status_transitions_test.rs
+- [X] T091 [P] [US3] Unit test for timeout detection (now() - started_at > 30s) in src-tauri/tests/unit/timeout_logic_test.rs
 - [ ] T092 [P] [US3] Contract test for StatusTracker::create_submission() in src-tauri/tests/contract/status_tracker_test.rs
 - [ ] T093 [P] [US3] Contract test for StatusTracker::update_status() emits events in src-tauri/tests/contract/status_tracker_test.rs
 
@@ -250,15 +250,15 @@ Based on plan.md structure:
 
 ### Implementation for Status Tracking
 
-- [ ] T094 [US3] Create Submission struct in src-tauri/src/status/mod.rs (id, provider_id, prompt_content, status, attempt_count, error_type, error_message, started_at, completed_at)
-- [ ] T095 [US3] Implement StatusTracker struct in src-tauri/src/status/tracker.rs with create_submission(), get_status(), update_status()
-- [ ] T096 [US3] Implement state transition validation in src-tauri/src/status/tracker.rs per data-model.md state machine
-- [ ] T097 [US3] Add timeout detection logic (30-second check) in src-tauri/src/status/tracker.rs
-- [ ] T098 [US3] Add retry logic: Timeout/NetworkError → increment attempt_count, transition to Retrying in src-tauri/src/status/tracker.rs
-- [ ] T099 [US3] Add no-retry logic: AuthError/RateLimitError → transition directly to Failed in src-tauri/src/status/tracker.rs
+- [X] T094 [US3] Create Submission struct in src-tauri/src/status/mod.rs (id, provider_id, prompt_content, status, attempt_count, error_type, error_message, started_at, completed_at)
+- [X] T095 [US3] Implement StatusTracker struct in src-tauri/src/status/tracker.rs with create_submission(), get_status(), update_status()
+- [X] T096 [US3] Implement state transition validation in src-tauri/src/status/tracker.rs per data-model.md state machine
+- [X] T097 [US3] Add timeout detection logic (30-second check) in src-tauri/src/status/tracker.rs
+- [X] T098 [US3] Add retry logic: Timeout/NetworkError → increment attempt_count, transition to Retrying in src-tauri/src/status/tracker.rs
+- [X] T099 [US3] Add no-retry logic: AuthError/RateLimitError → transition directly to Failed in src-tauri/src/status/tracker.rs
 - [ ] T100 [US3] Implement event emission (submission_status_changed) in src-tauri/src/status/tracker.rs
-- [ ] T101 [US3] Implement get_submission_status Tauri command in src-tauri/src/commands.rs
-- [ ] T102 [US3] Register get_submission_status command in src-tauri/src/lib.rs
+- [X] T101 [US3] Implement get_submission_status Tauri command in src-tauri/src/commands.rs
+- [X] T102 [US3] Register get_submission_status command in src-tauri/src/lib.rs
 
 **⚠️ VERIFY**: Run `cargo test status_transitions_test && cargo test timeout_logic_test` - all tests should PASS
 
@@ -283,24 +283,24 @@ Based on plan.md structure:
 
 ### Implementation for Prompt Submission
 
-- [ ] T107 [US1] Create Prompt struct in src-tauri/src/status/mod.rs (content, timestamp)
-- [ ] T108 [US1] Implement submit_prompt Tauri command in src-tauri/src/commands.rs
-- [ ] T109 [US1] Add validation: non-empty prompt and at least 1 provider selected in src-tauri/src/commands.rs
-- [ ] T110 [US1] Create Submission entities for each selected provider in submit_prompt command
+- [X] T107 [US1] Create Prompt struct in src-tauri/src/status/mod.rs (content, timestamp)
+- [X] T108 [US1] Implement submit_prompt Tauri command in src-tauri/src/commands.rs
+- [X] T109 [US1] Add validation: non-empty prompt and at least 1 provider selected in src-tauri/src/commands.rs
+- [X] T110 [US1] Create Submission entities for each selected provider in submit_prompt command
 - [ ] T111 [US1] Spawn async tasks for each submission (concurrent execution) in submit_prompt command
 - [ ] T112 [US1] Call Injector::execute() for each provider in async task
 - [ ] T113 [US1] Update Submission status based on injection result in async task
 - [ ] T114 [US1] Emit submission_status_changed event after each status update
-- [ ] T115 [US1] Register submit_prompt command in src-tauri/src/lib.rs
-- [ ] T116 [US1] Create PromptInput.svelte component in src/components/PromptInput.svelte
-- [ ] T117 [US1] Add textarea with prompt binding in PromptInput.svelte
-- [ ] T118 [US1] Add send button with invoke("submit_prompt") in PromptInput.svelte
-- [ ] T119 [US1] Add validation error display in PromptInput.svelte
-- [ ] T120 [US1] Create StatusDisplay.svelte component in src/components/StatusDisplay.svelte
+- [X] T115 [US1] Register submit_prompt command in src-tauri/src/lib.rs
+- [X] T116 [US1] Create PromptInput.svelte component in src/components/PromptInput.svelte
+- [X] T117 [US1] Add textarea with prompt binding in PromptInput.svelte
+- [X] T118 [US1] Add send button with invoke("submit_prompt") in PromptInput.svelte
+- [X] T119 [US1] Add validation error display in PromptInput.svelte
+- [X] T120 [US1] Create StatusDisplay.svelte component in src/components/StatusDisplay.svelte
 - [ ] T121 [US1] Wire up listen("submission_status_changed") event listener in StatusDisplay.svelte
-- [ ] T122 [US1] Display status for each provider (Pending, InProgress, Retrying, Success, Failed) in StatusDisplay.svelte
-- [ ] T123 [US1] Display error messages for failed submissions in StatusDisplay.svelte
-- [ ] T124 [US1] Integrate PromptInput, ProviderSelector, ProviderPanel, StatusDisplay in src/App.svelte
+- [X] T122 [US1] Display status for each provider (Pending, InProgress, Retrying, Success, Failed) in StatusDisplay.svelte
+- [X] T123 [US1] Display error messages for failed submissions in StatusDisplay.svelte
+- [X] T124 [US1] Integrate PromptInput, ProviderSelector, ProviderPanel, StatusDisplay in src/App.svelte
 - [ ] T124a [US1] Integration test for end-to-end submission timing: prompt to all 3 providers completes <10s in src-tauri/tests/integration/submission_timing_test.rs
 
 **⚠️ VERIFY**: Run `cargo test submission_flow_test && npm test` - all tests should PASS
@@ -317,15 +317,15 @@ Based on plan.md structure:
 
 ### Tests for Authentication Detection (TDD - Write FIRST)
 
-- [ ] T125 [P] [US4] Contract test for check_authentication() returns AuthenticationStatus in src-tauri/tests/contract/auth_check_test.rs
+- [X] T125 [P] [US4] Contract test for check_authentication() returns AuthenticationStatus in src-tauri/tests/contract/auth_check_test.rs
 - [ ] T126 [P] [US4] Integration test for auth_check_selectors detection (mock DOM with login button) in src-tauri/tests/integration/auth_detection_test.rs
 
 **⚠️ VERIFY**: Run `cargo test auth_check_test` - all tests should FAIL
 
 ### Implementation for Authentication Detection
 
-- [ ] T127 [US4] Create AuthenticationStatus struct in src-tauri/src/webview/mod.rs (provider_id, is_authenticated, last_checked, requires_login)
-- [ ] T128 [US4] Implement check_authentication() in src-tauri/src/webview/manager.rs
+- [X] T127 [US4] Create AuthenticationStatus struct in src-tauri/src/webview/mod.rs (provider_id, is_authenticated, last_checked, requires_login)
+- [X] T128 [US4] Implement check_authentication() in src-tauri/src/webview/manager.rs
 - [ ] T129 [US4] Inject JavaScript to check for auth_check_selectors presence in check_authentication()
 - [ ] T130 [US4] Return is_authenticated=false if auth selectors found
 - [ ] T131 [US4] Return is_authenticated=true if auth selectors not found
@@ -349,20 +349,20 @@ Based on plan.md structure:
 
 ### Tests for Privacy (TDD - Write FIRST)
 
-- [ ] T137 [P] [US5] Integration test verifies no credential storage in app data directory in src-tauri/tests/integration/privacy_test.rs
-- [ ] T138 [P] [US5] Integration test verifies no prompt history retained after app restart in src-tauri/tests/integration/privacy_test.rs
+- [X] T137 [P] [US5] Integration test verifies no credential storage in app data directory in src-tauri/tests/integration/privacy_test.rs
+- [X] T138 [P] [US5] Integration test verifies no prompt history retained after app restart in src-tauri/tests/integration/privacy_test.rs
 - [ ] T139 [P] [US5] Manual test: Monitor network traffic with Wireshark/Charles during prompt submission in docs/testing-guide.md
 
 **⚠️ VERIFY**: Run `cargo test privacy_test` - tests should FAIL until privacy guarantees implemented
 
 ### Implementation for Privacy Guarantees
 
-- [ ] T140 [US5] Audit all file I/O operations to verify no credential writes in src-tauri/src/
-- [ ] T141 [US5] Audit all network operations to verify only provider URLs contacted in src-tauri/src/
-- [ ] T142 [US5] Remove any prompt history/logging code in src-tauri/src/
-- [ ] T143 [US5] Document data handling: only session cookies managed by platform webview (FR-012) in docs/privacy-policy.md
-- [ ] T144 [US5] Document network usage: only LLM provider websites contacted (FR-013) in docs/privacy-policy.md
-- [ ] T144a [P] [US5] Create integration test to measure submission success rate over 20 attempts in src-tauri/tests/integration/success_rate_test.rs
+- [X] T140 [US5] Audit all file I/O operations to verify no credential writes in src-tauri/src/
+- [X] T141 [US5] Audit all network operations to verify only provider URLs contacted in src-tauri/src/
+- [X] T142 [US5] Remove any prompt history/logging code in src-tauri/src/
+- [X] T143 [US5] Document data handling: only session cookies managed by platform webview (FR-012) in docs/privacy-policy.md
+- [X] T144 [US5] Document network usage: only LLM provider websites contacted (FR-013) in docs/privacy-policy.md
+- [X] T144a [P] [US5] Create integration test to measure submission success rate over 20 attempts in src-tauri/tests/integration/success_rate_test.rs
 
 **⚠️ VERIFY**: Run `cargo test privacy_test` - all tests should PASS
 
@@ -374,21 +374,21 @@ Based on plan.md structure:
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T145 [P] Add structured logging for all Tauri commands in src-tauri/src/commands.rs
-- [ ] T146 [P] Add structured logging for injection attempts (element found/not found) in src-tauri/src/injection/injector.rs
-- [ ] T147 [P] Add structured logging for timeout events with timestamps in src-tauri/src/status/tracker.rs
-- [ ] T147a [P] Verify structured logging outputs both JSON (machine-readable) and human-readable formats per Constitution Principle IV in src-tauri/tests/integration/logging_format_test.rs
-- [ ] T148 [P] Refactor error handling: consistent CommandError usage across all commands in src-tauri/src/commands.rs
-- [ ] T149 [P] Add CSS styling for PromptInput, ProviderSelector, StatusDisplay components in src/components/
-- [ ] T150 [P] Add responsive design for split-screen layout enforcing TC-008 minimum window size in src/App.svelte
-- [ ] T151 [P] Add loading spinners for in-progress submissions in StatusDisplay.svelte
+- [X] T145 [P] Add structured logging for all Tauri commands in src-tauri/src/commands.rs
+- [X] T146 [P] Add structured logging for injection attempts (element found/not found) in src-tauri/src/injection/injector.rs
+- [X] T147 [P] Add structured logging for timeout events with timestamps in src-tauri/src/status/tracker.rs
+- [X] T147a [P] Verify structured logging outputs both JSON (machine-readable) and human-readable formats per Constitution Principle IV in src-tauri/tests/integration/logging_format_test.rs
+- [X] T148 [P] Refactor error handling: consistent CommandError usage across all commands in src-tauri/src/commands.rs
+- [X] T149 [P] Add CSS styling for PromptInput, ProviderSelector, StatusDisplay components in src/components/
+- [X] T150 [P] Add responsive design for split-screen layout enforcing TC-008 minimum window size in src/App.svelte
+- [X] T151 [P] Add loading spinners for in-progress submissions in StatusDisplay.svelte
 - [ ] T152 [P] Performance: Optimize layout recalculation with debouncing in App.svelte
 - [ ] T153 [P] Documentation: Update README.md with quickstart instructions
-- [ ] T154 [P] Documentation: Create CLAUDE.md with active technologies and project structure
+- [X] T154 [P] Documentation: Create CLAUDE.md with active technologies and project structure
 - [ ] T155 Run quickstart.md validation: cargo test && npm test
 - [ ] T156 Run quickstart.md validation: npm run tauri dev (verify app starts <3s)
-- [ ] T157 [P] Security: Audit for XSS vulnerabilities in JavaScript injection code
-- [ ] T158 [P] Security: Audit for command injection vulnerabilities
+- [X] T157 [P] Security: Audit for XSS vulnerabilities in JavaScript injection code
+- [X] T158 [P] Security: Audit for command injection vulnerabilities
 - [ ] T159 Build production binary: npm run tauri build
 - [ ] T160 Verify binary size <15MB (TC-004)
 - [ ] T160a Validate SC-002: Run success_rate_test and verify >=95% success rate with valid sessions
