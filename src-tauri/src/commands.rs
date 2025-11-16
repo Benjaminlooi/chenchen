@@ -8,7 +8,7 @@ use crate::state::AppState;
 use crate::types::{CommandError, ProviderId};
 use crate::{log_error, log_info};
 use log::{error, info};
-use tauri::{Emitter, State};
+use tauri::State;
 
 /// Gets all available providers
 /// Returns the list of all 3 providers with their current state
@@ -201,8 +201,8 @@ pub async fn submit_prompt(
         tauri::async_runtime::spawn(async move {
             use tauri::Manager;
 
-            // Get the webview
-            let webview = match app_clone.get_webview_window(&label) {
+            // Get the webview (child webview, not window)
+            let webview = match app_clone.get_webview(&label) {
                 Some(wv) => wv,
                 None => {
                     log_error!("Webview not found for execution", {
@@ -262,7 +262,7 @@ pub async fn sync_provider_webview(
     width: f64,
     height: f64,
 ) -> Result<(), CommandError> {
-    use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
+    use tauri::{Manager, WebviewUrl, WebviewBuilder};
     use tauri::Position;
     use tauri::Size;
 
@@ -275,8 +275,12 @@ pub async fn sync_provider_webview(
         "size": format!("{}x{}", width, height)
     });
 
+    // Get the main window to use as parent (bare Window, not WebviewWindow)
+    let main_window = app.get_window("main")
+        .ok_or_else(|| CommandError::internal("Main window not found"))?;
+
     // Check if webview already exists
-    if let Some(webview) = app.get_webview_window(&label) {
+    if let Some(webview) = app.get_webview(&label) {
         // Update position and size
         webview.set_position(Position::Logical(tauri::LogicalPosition { x, y }))
             .map_err(|e| CommandError::internal(format!("Failed to set position: {}", e)))?;
@@ -288,22 +292,25 @@ pub async fn sync_provider_webview(
             "label": &label
         });
     } else {
-        // Create new webview
-        let _webview = WebviewWindowBuilder::new(&app, &label, WebviewUrl::External(url.parse().unwrap()))
-            .title(&format!("{} - ChenChen", provider_id.as_str()))
-            .position(x, y)
-            .inner_size(width, height)
-            .visible(true)
-            .build()
-            .map_err(|e| {
-                log_error!("Failed to create webview", {
-                    "label": &label,
-                    "error": e.to_string()
-                });
-                CommandError::internal(format!("Failed to create webview: {}", e))
-            })?;
+        // Create new child webview attached to main window
+        let webview_builder = WebviewBuilder::new(&label, WebviewUrl::External(url.parse().unwrap()));
 
-        log_info!("Created new webview", {
+        let position = tauri::LogicalPosition { x, y };
+        let size = tauri::LogicalSize { width, height };
+
+        let _webview = main_window.add_child(
+            webview_builder,
+            Position::Logical(position),
+            Size::Logical(size)
+        ).map_err(|e| {
+            log_error!("Failed to create child webview", {
+                "label": &label,
+                "error": e.to_string()
+            });
+            CommandError::internal(format!("Failed to create child webview: {}", e))
+        })?;
+
+        log_info!("Created new child webview", {
             "label": &label
         });
     }
