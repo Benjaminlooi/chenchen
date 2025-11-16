@@ -202,21 +202,23 @@
     display: flex;
     flex-direction: column;
     height: 100vh;
-    padding: 0.5rem;
-    gap: 0.5rem;
+    padding: 0.25rem;
+    gap: 0.25rem;
+    overflow: hidden;
   }
 
   .header {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 0.5rem;
+    gap: 0.75rem;
+    padding: 0.25rem 0.5rem;
     background: #f8f8f8;
     border-radius: 4px;
+    flex-shrink: 0;
   }
 
   h1 {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     margin: 0;
     color: #333;
     white-space: nowrap;
@@ -225,26 +227,26 @@
   .controls {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.25rem;
+    flex-shrink: 0;
   }
 
   .layout-container {
     position: relative;
     flex: 1;
-    min-height: 400px;
+    min-height: 200px;
     background: #fff;
     border: 2px solid #ddd;
-    border-radius: 8px;
+    border-radius: 6px;
     overflow: hidden;
   }
 
   .layout-placeholder,
   .layout-error {
-    padding: 3rem;
+    padding: 2rem;
     text-align: center;
     color: #999;
     font-style: italic;
-    margin-top: 2rem;
   }
 
   .layout-error {
@@ -262,10 +264,6 @@
 
     h1 {
       color: #f6f6f6;
-    }
-
-    .subtitle {
-      color: #ccc;
     }
 
     .layout-container {

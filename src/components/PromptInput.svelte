@@ -52,15 +52,13 @@
 </script>
 
 <div class="prompt-input-container">
-  <h2>Enter Your Prompt</h2>
-
   <div class="input-wrapper">
     <!-- T117: Textarea with prompt binding -->
     <textarea
       bind:value={prompt}
       on:keydown={handleKeydown}
-      placeholder="Enter your prompt here... (Press Enter to send, Shift+Enter for new line)"
-      rows="4"
+      placeholder="Enter prompt (Enter to send, Shift+Enter for new line)"
+      rows="2"
       disabled={loading}
       data-testid="prompt-textarea"
     ></textarea>
@@ -72,53 +70,43 @@
       class="submit-button"
       data-testid="submit-button"
     >
-      {loading ? 'Sending...' : 'Send to Selected Providers'}
+      {loading ? 'Sending...' : 'Send'}
     </button>
   </div>
 
   <!-- T119: Error display -->
   {#if error}
     <div class="error" role="alert" data-testid="prompt-error">
-      <strong>Error:</strong>
       {error}
     </div>
   {/if}
-
-  <p class="hint">
-    Your prompt will be sent to all selected LLM providers simultaneously.
-  </p>
 </div>
 
 <style>
   .prompt-input-container {
-    padding: 1.5rem;
+    padding: 0.75rem;
     background: var(--bg-primary, white);
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin: 1rem 0;
-  }
-
-  h2 {
-    margin: 0 0 1rem 0;
-    font-size: 1.25rem;
-    color: var(--text-primary, #333);
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin: 0.5rem 0;
   }
 
   .input-wrapper {
     display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.5rem;
+    align-items: flex-start;
   }
 
   textarea {
-    width: 100%;
-    padding: 0.75rem;
+    flex: 1;
+    padding: 0.5rem;
     font-family: inherit;
-    font-size: 1rem;
+    font-size: 0.9rem;
     border: 2px solid var(--border-color, #ddd);
-    border-radius: 6px;
+    border-radius: 4px;
     resize: vertical;
     transition: border-color 0.2s;
+    min-height: 60px;
   }
 
   textarea:focus {
@@ -132,43 +120,36 @@
   }
 
   .submit-button {
-    align-self: flex-end;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
     font-weight: 600;
     color: white;
     background: var(--primary-color, #4a9eff);
     border: none;
-    border-radius: 6px;
+    border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s;
+    white-space: nowrap;
+    height: fit-content;
   }
 
   .submit-button:hover:not(:disabled) {
     background: var(--primary-color-dark, #3a8eef);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(74, 158, 255, 0.3);
+    box-shadow: 0 2px 4px rgba(74, 158, 255, 0.3);
   }
 
   .submit-button:disabled {
     background: var(--bg-disabled, #ccc);
     cursor: not-allowed;
-    transform: none;
   }
 
   .error {
-    padding: 0.75rem;
+    padding: 0.5rem;
     background: var(--error-bg, #fee);
     border: 1px solid var(--error-border, #fcc);
     border-radius: 4px;
     color: var(--error-text, #c33);
-    margin-top: 0.75rem;
-  }
-
-  .hint {
-    margin-top: 0.75rem;
+    margin-top: 0.5rem;
     font-size: 0.85rem;
-    color: var(--text-secondary, #666);
-    font-style: italic;
   }
 </style>
