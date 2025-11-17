@@ -25,7 +25,7 @@ impl Provider {
             name: id.as_str().to_string(),
             url: id.url().to_string(),
             id,
-            is_selected: false,
+            is_selected: true,
             is_authenticated: false,
             selector_config_id: id.as_str().to_string(),
         }
