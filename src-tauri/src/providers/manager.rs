@@ -1,5 +1,6 @@
 // Provider selection and management logic
 
+use super::config::ProviderConfigs;
 use super::Provider;
 use crate::types::{CommandError, ProviderId};
 
@@ -10,12 +11,31 @@ pub struct ProviderManager {
 
 impl ProviderManager {
     /// Creates a new ProviderManager with all three providers initialized
+    /// Loads is_selected defaults from providers.json config
     pub fn new() -> Self {
+        // Load provider configs to get is_selected defaults
+        let configs = ProviderConfigs::load().unwrap_or_else(|e| {
+            eprintln!("Warning: Failed to load provider configs: {}. Using default is_selected=true for all providers.", e);
+            // Return a default that will cause fallback behavior
+            ProviderConfigs {
+                version: "1.0.0".to_string(),
+                providers: std::collections::HashMap::new(),
+            }
+        });
+
+        // Helper to get is_selected from config or default to true
+        let get_is_selected = |provider_id: ProviderId| -> bool {
+            configs
+                .get_config(provider_id)
+                .map(|config| config.is_selected)
+                .unwrap_or(true) // Default to selected if config not found
+        };
+
         Self {
             providers: vec![
-                Provider::new(ProviderId::ChatGPT),
-                Provider::new(ProviderId::Gemini),
-                Provider::new(ProviderId::Claude),
+                Provider::new(ProviderId::ChatGPT, get_is_selected(ProviderId::ChatGPT)),
+                Provider::new(ProviderId::Gemini, get_is_selected(ProviderId::Gemini)),
+                Provider::new(ProviderId::Claude, get_is_selected(ProviderId::Claude)),
             ],
         }
     }

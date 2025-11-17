@@ -4,6 +4,7 @@
     "ChatGPT": {
       "provider_id": "ChatGPT",
       "config_version": "1.0.0",
+      "is_selected": true,
       "input_selectors": [
         "textarea[data-id='root']",
         "textarea[placeholder*='Message']",
@@ -25,6 +26,7 @@
     "Gemini": {
       "provider_id": "Gemini",
       "config_version": "1.0.0",
+      "is_selected": true,
       "input_selectors": [
         ".ql-editor[contenteditable='true']",
         "div[role='textbox'][aria-label*='Enter a prompt']",
@@ -46,6 +48,7 @@
     "Claude": {
       "provider_id": "Claude",
       "config_version": "1.0.0",
+      "is_selected": true,
       "input_selectors": [
         "div[contenteditable='true'][role='textbox']",
         ".ProseMirror[contenteditable='true']",
