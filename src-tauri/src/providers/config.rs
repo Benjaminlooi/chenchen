@@ -12,6 +12,7 @@ pub struct ProviderSelectorConfig {
     pub provider_id: ProviderId,
     #[serde(rename = "config_version")]
     pub version: String,
+    pub is_selected: bool,
     pub input_selectors: Vec<String>,
     pub submit_selectors: Vec<String>,
     pub auth_check_selectors: Vec<String>,

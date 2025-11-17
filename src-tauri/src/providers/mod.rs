@@ -20,12 +20,12 @@ pub struct Provider {
 }
 
 impl Provider {
-    pub fn new(id: ProviderId) -> Self {
+    pub fn new(id: ProviderId, is_selected: bool) -> Self {
         Self {
             name: id.as_str().to_string(),
             url: id.url().to_string(),
             id,
-            is_selected: true,
+            is_selected,
             is_authenticated: false,
             selector_config_id: id.as_str().to_string(),
         }
