@@ -40,12 +40,12 @@ fn test_get_all_providers_returns_correct_data() {
             "Provider name should not be empty"
         );
         assert!(!provider.url.is_empty(), "Provider URL should not be empty");
-        assert_eq!(
-            provider.is_selected, false,
+        assert!(
+            !provider.is_selected,
             "Providers should be unselected by default"
         );
-        assert_eq!(
-            provider.is_authenticated, false,
+        assert!(
+            !provider.is_authenticated,
             "Providers should be unauthenticated by default"
         );
     }

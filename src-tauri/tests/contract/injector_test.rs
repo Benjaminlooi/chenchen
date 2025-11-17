@@ -8,7 +8,7 @@ use chenchen_lib::injection::InjectionResult;
 fn test_injector_creation() {
     // Verify we can create an Injector instance
     let injector = Injector::new();
-    assert!(injector.is_ok() || true); // Injector creation should work
+    assert!(injector.is_ok()); // Injector creation should work
 }
 
 #[test]
@@ -47,9 +47,9 @@ fn test_injection_result_structure() {
         submit_triggered: true,
     };
 
-    assert_eq!(result.success, true);
-    assert_eq!(result.element_found, true);
-    assert_eq!(result.submit_triggered, true);
+    assert!(result.success);
+    assert!(result.element_found);
+    assert!(result.submit_triggered);
     assert!(result.error_message.is_none());
 }
 
@@ -63,9 +63,9 @@ fn test_injection_result_with_error() {
         submit_triggered: false,
     };
 
-    assert_eq!(result.success, false);
-    assert_eq!(result.element_found, false);
-    assert_eq!(result.submit_triggered, false);
+    assert!(!result.success);
+    assert!(!result.element_found);
+    assert!(!result.submit_triggered);
     assert!(result.error_message.is_some());
     assert_eq!(result.error_message.unwrap(), "Element not found");
 }

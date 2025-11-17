@@ -154,8 +154,8 @@ mod tests {
     fn test_prepare_injection_generates_script() {
         let injector = Injector::new().unwrap();
         let script = injector.prepare_injection(
-            &vec!["input".to_string()],
-            &vec!["button".to_string()],
+            &["input".to_string()],
+            &["button".to_string()],
             "Test",
         );
 

@@ -19,7 +19,7 @@ pub fn calculate_layout(providers: &[ProviderId]) -> LayoutConfiguration {
 
     // Validation
     assert!(
-        provider_count >= 1 && provider_count <= 3,
+        (1..=3).contains(&provider_count),
         "Provider count must be between 1 and 3"
     );
 
