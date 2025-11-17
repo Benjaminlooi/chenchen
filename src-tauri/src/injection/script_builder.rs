@@ -167,8 +167,8 @@ mod tests {
     #[test]
     fn test_generate_script_basic() {
         let script = generate_injection_script(
-            &vec!["input".to_string()],
-            &vec!["button".to_string()],
+            &["input".to_string()],
+            &["button".to_string()],
             "Hello",
         );
 

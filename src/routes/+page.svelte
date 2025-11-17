@@ -5,7 +5,6 @@
   import PromptInput from '../components/PromptInput.svelte';
   import { tauri } from '../services/tauri';
   import { syncProviderWebviews, type PanelBounds } from '../services/providerWebviews';
-  import { initPromptExecutionListener, cleanupPromptExecutionListener } from '../services/promptExecution';
   import type { LayoutConfiguration, Provider, Submission } from '../types';
   import '../app.css'; // Import global styles
 
@@ -29,9 +28,6 @@
   onMount(() => {
     loadProvidersAndLayout();
 
-    // Initialize prompt execution listener
-    initPromptExecutionListener();
-
     // Set up custom event listener for provider changes
     window.addEventListener('providers-changed', handleProvidersChanged as EventListener);
 
@@ -39,7 +35,6 @@
     window.addEventListener('resize', handleResize);
 
     return () => {
-      cleanupPromptExecutionListener();
       window.removeEventListener('providers-changed', handleProvidersChanged as EventListener);
       window.removeEventListener('resize', handleResize);
       cleanupPanelResizeObserver();

@@ -26,7 +26,7 @@ fn test_submission_success_rate_exceeds_95_percent() {
 
             // Create submission
             let submission = tracker
-                .create_submission(provider_id.clone(), prompt.clone())
+                .create_submission(*provider_id, prompt.clone())
                 .expect("Failed to create submission");
 
             let submission_id = submission.id.clone();
@@ -147,7 +147,7 @@ fn test_non_retryable_errors_fail_immediately() {
             .expect("Failed to start");
 
         let updated = tracker
-            .fail_submission(&submission_id, error_type.clone(), "Test error".to_string())
+            .fail_submission(&submission_id, error_type, "Test error".to_string())
             .expect("Failed to mark as failed");
 
         // Non-retryable errors should result in Failed status, not Retrying
@@ -168,14 +168,14 @@ fn test_concurrent_submissions_maintain_isolation() {
     let tracker = StatusTracker::new();
 
     // Create multiple submissions concurrently
-    let providers = vec![ProviderId::ChatGPT, ProviderId::Gemini, ProviderId::Claude];
+    let providers = [ProviderId::ChatGPT, ProviderId::Gemini, ProviderId::Claude];
 
     let mut submission_ids = Vec::new();
 
     // Create and start all submissions
     for provider_id in providers.iter() {
         let submission = tracker
-            .create_submission(provider_id.clone(), "Concurrent test".to_string())
+            .create_submission(*provider_id, "Concurrent test".to_string())
             .expect("Failed to create submission");
 
         let submission_id = submission.id.clone();
@@ -208,7 +208,7 @@ fn test_concurrent_submissions_maintain_isolation() {
     assert_eq!(sub2.status, SubmissionStatus::Retrying);
 
     // Verify success rate calculation
-    let submissions = vec![sub0, sub1, sub2];
+    let submissions = [sub0, sub1, sub2];
     let successes = submissions
         .iter()
         .filter(|s| s.status == SubmissionStatus::Success)
