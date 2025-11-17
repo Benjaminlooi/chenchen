@@ -12,13 +12,6 @@ pub mod types;
 
 use state::AppState;
 
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    info!("Greet command called with name: {}", name);
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     // Initialize logging
@@ -32,7 +25,6 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .manage(AppState::new()) // Register shared application state
         .invoke_handler(tauri::generate_handler![
-            greet,
             commands::get_providers,
             commands::update_provider_selection,
             commands::get_layout_configuration,

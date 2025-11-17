@@ -101,11 +101,17 @@ mod tests {
     fn test_cannot_deselect_last_provider() {
         let mut manager = ProviderManager::new();
 
+        // All 3 providers start selected by default
+        // Deselect two of them
         manager
-            .update_provider_selection(ProviderId::ChatGPT, true)
-            .expect("Should allow selecting first provider");
+            .update_provider_selection(ProviderId::ChatGPT, false)
+            .expect("Should allow deselecting first provider");
+        manager
+            .update_provider_selection(ProviderId::Gemini, false)
+            .expect("Should allow deselecting second provider");
 
-        let result = manager.update_provider_selection(ProviderId::ChatGPT, false);
+        // Now try to deselect the last one - should fail
+        let result = manager.update_provider_selection(ProviderId::Claude, false);
 
         assert!(result.is_err());
         let error = result.unwrap_err();
@@ -116,15 +122,17 @@ mod tests {
     fn test_can_select_all_three_providers() {
         let mut manager = ProviderManager::new();
 
+        // All 3 providers start selected by default
+        let selected_count = manager.get_selected_providers().len();
+        assert_eq!(selected_count, 3);
+
+        // Verify we can keep them all selected even after toggling
+        manager
+            .update_provider_selection(ProviderId::ChatGPT, false)
+            .expect("Should allow deselecting");
         manager
             .update_provider_selection(ProviderId::ChatGPT, true)
-            .expect("Should allow selecting first provider");
-        manager
-            .update_provider_selection(ProviderId::Gemini, true)
-            .expect("Should allow selecting second provider");
-        manager
-            .update_provider_selection(ProviderId::Claude, true)
-            .expect("Should allow selecting third provider");
+            .expect("Should allow re-selecting");
 
         let selected_count = manager.get_selected_providers().len();
         assert_eq!(selected_count, 3);
@@ -134,18 +142,23 @@ mod tests {
     fn test_can_toggle_selection() {
         let mut manager = ProviderManager::new();
 
-        manager
-            .update_provider_selection(ProviderId::ChatGPT, true)
-            .unwrap();
-        manager
-            .update_provider_selection(ProviderId::Gemini, true)
-            .unwrap();
+        // All 3 providers start selected by default
+        assert_eq!(manager.get_selected_providers().len(), 3);
 
+        // Deselect one provider
         let result = manager.update_provider_selection(ProviderId::ChatGPT, false);
         assert!(result.is_ok());
 
         let selected = manager.get_selected_providers();
-        assert_eq!(selected.len(), 1);
+        assert_eq!(selected.len(), 2);
         assert!(selected.iter().any(|p| p.id == ProviderId::Gemini));
+        assert!(selected.iter().any(|p| p.id == ProviderId::Claude));
+
+        // Re-select it
+        let result = manager.update_provider_selection(ProviderId::ChatGPT, true);
+        assert!(result.is_ok());
+
+        let selected = manager.get_selected_providers();
+        assert_eq!(selected.len(), 3);
     }
 }
