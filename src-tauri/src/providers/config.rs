@@ -4,7 +4,6 @@ use crate::types::{CommandError, ProviderId};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::fs;
 
 /// CSS selectors and configuration for locating elements on a provider's website
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
@@ -30,13 +29,13 @@ pub struct ProviderConfigs {
 
 impl ProviderConfigs {
     /// Loads provider configurations from the config/providers.json file
+    /// Uses compile-time embedding to ensure the config is available in production builds
     pub fn load() -> Result<Self, CommandError> {
-        let config_path = "config/providers.json";
-        let content = fs::read_to_string(config_path).map_err(|e| {
-            CommandError::internal(format!("Failed to read provider config: {}", e))
-        })?;
+        // Embed the config file at compile time
+        // This ensures it's available in both dev and production builds
+        const PROVIDERS_JSON: &str = include_str!("../../config/providers.json");
 
-        let configs: ProviderConfigs = serde_json::from_str(&content).map_err(|e| {
+        let configs: ProviderConfigs = serde_json::from_str(PROVIDERS_JSON).map_err(|e| {
             CommandError::internal(format!("Failed to parse provider config: {}", e))
         })?;
 
