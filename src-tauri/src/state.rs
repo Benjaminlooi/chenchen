@@ -1,7 +1,6 @@
 use crate::providers::config::ProviderConfigs;
 use crate::providers::manager::ProviderManager;
 use crate::status::tracker::StatusTracker;
-use crate::webview::WebviewManager;
 use log::{info, warn};
 use std::sync::{Arc, Mutex};
 
@@ -14,8 +13,6 @@ pub struct AppState {
     pub provider_configs: Option<ProviderConfigs>,
     /// Status tracker for managing prompt submissions
     pub status_tracker: Arc<StatusTracker>,
-    /// Webview manager for provider webviews
-    pub webview_manager: Arc<WebviewManager>,
 }
 
 impl AppState {
@@ -36,7 +33,6 @@ impl AppState {
             provider_manager: Mutex::new(ProviderManager::new()),
             provider_configs,
             status_tracker: Arc::new(StatusTracker::new()),
-            webview_manager: Arc::new(WebviewManager::new()),
         }
     }
 }

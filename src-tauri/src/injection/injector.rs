@@ -2,12 +2,10 @@
 // Handles script execution, timeout management, and result parsing
 
 use super::script_builder;
-use super::InjectionResult;
-use crate::log_error;
 use crate::log_info;
-use crate::types::ProviderId;
-use crate::webview::WebviewManager;
-use tauri::AppHandle;
+
+#[cfg(test)]
+use super::InjectionResult;
 
 /// Manages JavaScript injection into provider webviews
 pub struct Injector {}
@@ -52,65 +50,9 @@ impl Injector {
         script
     }
 
-    /// Executes an injection script in an existing webview
-    ///
-    /// This executes the JavaScript code in the provider's webview and parses the result.
-    /// The script should return a JSON object with the InjectionResult structure.
-    ///
-    /// # Arguments
-    /// * `app` - The Tauri app handle
-    /// * `webview_manager` - The webview manager
-    /// * `provider_id` - The provider to execute the script for
-    /// * `script` - The JavaScript code to execute
-    ///
-    /// # Returns
-    /// Result containing the parsed InjectionResult or an error message
-    pub async fn execute(
-        &self,
-        app: &AppHandle,
-        webview_manager: &WebviewManager,
-        provider_id: ProviderId,
-        script: &str,
-    ) -> Result<InjectionResult, String> {
-        log_info!("Executing injection script", {
-            "provider_id": format!("{:?}", provider_id),
-            "script_length": script.len()
-        });
-
-        // Execute the script in the existing webview
-        let result_str = webview_manager
-            .execute_script(app, provider_id, script)
-            .await?;
-
-        log_info!("Raw script result", {
-            "provider_id": format!("{:?}", provider_id),
-            "result": &result_str
-        });
-
-        // Parse the JSON result
-        let result: InjectionResult = serde_json::from_str(&result_str).map_err(|e| {
-            log_error!("Failed to parse injection result", {
-                "provider_id": format!("{:?}", provider_id),
-                "error": e.to_string(),
-                "result": &result_str
-            });
-            format!("Failed to parse injection result: {}", e)
-        })?;
-
-        log_info!("Injection execution completed", {
-            "provider_id": format!("{:?}", provider_id),
-            "success": result.success,
-            "element_found": result.element_found,
-            "submit_triggered": result.submit_triggered
-        });
-
-        Ok(result)
-    }
-
     /// Executes an injection script in a webview (mock version for testing)
     ///
-    /// NOTE: This is kept for backward compatibility with tests.
-    /// Use execute() for real execution.
+    /// NOTE: This is only used for testing purposes.
     #[cfg(test)]
     pub fn execute_mock(&self, _script: &str) -> Result<InjectionResult, String> {
         log_info!("Executing injection script (mock)", {
