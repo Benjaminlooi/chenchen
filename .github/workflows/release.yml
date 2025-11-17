@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Triggers on version tags like v1.0.0, v0.1.0-beta, etc.
+  workflow_dispatch: # Allows manual triggering from GitHub UI
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'windows-latest'
+            args: ''
+          # Uncomment to build for other platforms:
+          # - platform: 'ubuntu-22.04'
+          #   args: ''
+          # - platform: 'macos-latest'
+          #   args: '--target universal-apple-darwin'
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          # Targets for universal macOS builds
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Install Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build and create release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'ChenChen ${{ github.ref_name }}'
+          releaseBody: |
+            See the assets below to download the app for your platform.
+
+            ## What's Changed
+            - See the [changelog](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/CHANGELOG.md) for details
+
+            ## Installation
+            - **Windows**: Download and run the `.msi` or `.exe` installer
+            - **Linux**: Download the `.AppImage` and make it executable
+            - **macOS**: Download the `.dmg` and drag to Applications
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
