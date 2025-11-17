@@ -6,13 +6,6 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-/// Represents the prompt text being submitted
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
-pub struct Prompt {
-    pub content: String,
-    pub timestamp: String, // ISO 8601
-}
-
 /// Tracks a prompt submission to a specific provider
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct Submission {

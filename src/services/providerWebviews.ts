@@ -74,17 +74,6 @@ export async function syncProviderWebviews(bounds: PanelBounds[]): Promise<void>
   }
 }
 
-export async function focusProviderWebview(providerId: ProviderId): Promise<void> {
-  // With Rust-created webviews, we could add a focus command if needed
-  console.log(`[ProviderWebviews] Focus requested for ${providerId}`);
-  // TODO: Add a Rust command to focus webview if needed
-}
-
-export async function disposeAllProviderWebviews(): Promise<void> {
-  // Cleanup handled by Tauri when app closes
-  console.log('[ProviderWebviews] Dispose all requested');
-}
-
 async function disposeProviderWebview(providerId: ProviderId): Promise<void> {
   await invoke('dispose_provider_webview', { providerId });
 }
