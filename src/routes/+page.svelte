@@ -15,14 +15,17 @@
   let layout = $state<LayoutConfiguration | null>(null);
   let providers = $state<Provider[]>([]);
   let layoutContainerElement = $state<HTMLElement | null>(null);
+  let bottomBarElement = $state<HTMLElement | null>(null);
   let layoutError = $state<string | null>(null);
 
-  // Debounce timer for layout recalculation (T152: Performance optimization)
-  let layoutDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  // Debounce timers for performance optimization (T152)
   let resizeDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   let resizeObserver: ResizeObserver | null = null;
   const observedResizeTargets = new Set<Element>();
   let pendingBoundsSyncFrame: number | null = null;
+  let resizeObserverDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  let lastSyncedBounds: string | null = null; // JSON stringified bounds for comparison
+  let isSyncing = false; // Prevent re-entrant syncing
 
   // Load providers and layout on mount
   onMount(() => {
@@ -117,7 +120,14 @@
 
     if (!resizeObserver) {
       resizeObserver = new ResizeObserver(() => {
-        scheduleWebviewPositionSync();
+        // Debounce ResizeObserver to avoid firing during CSS transitions
+        if (resizeObserverDebounceTimer) {
+          clearTimeout(resizeObserverDebounceTimer);
+        }
+        resizeObserverDebounceTimer = setTimeout(() => {
+          scheduleWebviewPositionSync();
+          resizeObserverDebounceTimer = null;
+        }, 150); // 150ms debounce - wait for CSS transitions to complete
       });
     }
 
@@ -149,6 +159,11 @@
       resizeObserver = null;
     }
 
+    if (resizeObserverDebounceTimer) {
+      clearTimeout(resizeObserverDebounceTimer);
+      resizeObserverDebounceTimer = null;
+    }
+
     if (pendingBoundsSyncFrame !== null && typeof window !== 'undefined') {
       window.cancelAnimationFrame(pendingBoundsSyncFrame);
       pendingBoundsSyncFrame = null;
@@ -157,14 +172,43 @@
 
   function updateWebviewPositions() {
     if (!ENABLE_WEBVIEWS) return; // Skip when disabled
+    if (isSyncing) return; // Prevent re-entrant syncing
 
     if (layout && layout.panel_dimensions.length > 0 && layoutContainerElement) {
       const bounds = calculatePanelBounds();
-      if (bounds.length > 0) {
-        syncProviderWebviews(bounds).catch((error) => {
-          console.error('Failed to update webview positions:', error);
-        });
+
+      // Don't sync if we get no valid bounds or incomplete bounds
+      // This prevents disposing all webviews due to CSS transition intermediate values
+      if (bounds.length === 0 || bounds.length < layout.panel_dimensions.length) {
+        console.log(`Skipping webview sync - incomplete bounds (${bounds.length}/${layout.panel_dimensions.length})`);
+        return;
       }
+
+      // Check if bounds have actually changed
+      const boundsKey = JSON.stringify(
+        bounds.map((b) => ({
+          id: b.providerId,
+          x: Math.round(b.x),
+          y: Math.round(b.y),
+          w: Math.round(b.width),
+          h: Math.round(b.height),
+        }))
+      );
+
+      if (boundsKey === lastSyncedBounds) {
+        return; // No meaningful change, skip sync
+      }
+
+      isSyncing = true;
+      lastSyncedBounds = boundsKey;
+
+      syncProviderWebviews(bounds)
+        .catch((error) => {
+          console.error('Failed to update webview positions:', error);
+        })
+        .finally(() => {
+          isSyncing = false;
+        });
     }
   }
 
@@ -187,6 +231,8 @@
     }
 
     const container = layoutContainerElement; // Store for TypeScript null check
+    const MIN_WEBVIEW_HEIGHT = 50; // Minimum reasonable height for a webview
+    const MIN_WEBVIEW_WIDTH = 50; // Minimum reasonable width for a webview
 
     return layout.panel_dimensions
       .map((dimension) => {
@@ -202,11 +248,23 @@
 
         // Get the actual rendered bounds of the content area
         const contentRect = targetElement.getBoundingClientRect();
+
+        // Filter out invalid bounds (too small - likely from CSS transition intermediate frames)
+        if (contentRect.width < MIN_WEBVIEW_WIDTH || contentRect.height < MIN_WEBVIEW_HEIGHT) {
+          console.log(`Skipping ${dimension.provider_id} - bounds too small during transition:`, {
+            width: contentRect.width,
+            height: contentRect.height,
+          });
+          return null;
+        }
+
         console.log(`Panel bounds for ${dimension.provider_id}:`, {
           x: contentRect.x,
           y: contentRect.y,
           width: contentRect.width,
           height: contentRect.height,
+          windowInnerWidth: window.innerWidth,
+          windowInnerHeight: window.innerHeight,
         });
 
         return {
@@ -253,7 +311,7 @@
     </div>
   {/if}
 
-  <div class="bottom-bar">
+  <div class="bottom-bar" bind:this={bottomBarElement}>
     <ProviderSelector />
     <div class="divider"></div>
     <PromptInput onsubmitted={handlePromptSubmitted} />
@@ -277,6 +335,7 @@
     flex-direction: column;
     height: 100vh;
     overflow: hidden;
+    background: transparent;
   }
 
   .bottom-bar {
@@ -284,13 +343,13 @@
     align-items: center;
     gap: 1rem;
     padding: 1rem 1.5rem;
-    background: linear-gradient(to top, rgba(248, 248, 248, 0.95), rgba(255, 255, 255, 0.9));
+    background: linear-gradient(to top, rgba(248, 248, 248, 0.98), rgba(255, 255, 255, 0.95));
     backdrop-filter: blur(20px);
     border-top: 1px solid rgba(0, 0, 0, 0.06);
     flex-shrink: 0;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
     position: relative;
-    z-index: 100;
+    z-index: 1000;
   }
 
   .divider {
@@ -307,7 +366,7 @@
   .layout-container {
     position: relative;
     flex: 1;
-    background: #fff;
+    background: transparent;
     overflow: hidden;
   }
 

@@ -13,6 +13,7 @@
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
     "tauri": "tauri",
+    "tauri:wsl": "WEBKIT_DISABLE_COMPOSITING_MODE=1 GDK_BACKEND=x11 tauri",
     "version": "node scripts/bump-version.js",
     "version:patch": "node scripts/bump-version.js patch",
     "version:minor": "node scripts/bump-version.js minor",
