@@ -131,18 +131,18 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem;
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(30, 30, 30, 0.8);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .input-wrapper:focus-within {
-    background: rgba(255, 255, 255, 0.95);
-    border-color: rgba(74, 158, 255, 0.5);
-    box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.1),
-                0 4px 12px rgba(0, 0, 0, 0.08);
+    background: rgba(30, 30, 30, 0.95);
+    border-color: rgba(102, 126, 234, 0.5);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15),
+                0 4px 12px rgba(0, 0, 0, 0.3);
   }
 
   .input-wrapper.vanishing {
@@ -157,12 +157,12 @@
     font-size: 0.95rem;
     background: transparent;
     border: none;
-    color: #1a1a1a;
+    color: #f6f6f6;
     transition: all 0.3s ease;
   }
 
   input::placeholder {
-    color: #999;
+    color: #666;
     transition: color 0.3s ease, opacity 0.3s ease;
     animation: placeholder-slide 0.5s ease;
   }
@@ -183,7 +183,7 @@
   }
 
   input:focus::placeholder {
-    color: #bbb;
+    color: #555;
   }
 
   input:disabled {
@@ -261,30 +261,4 @@
     }
   }
 
-  /* Dark mode support */
-  @media (prefers-color-scheme: dark) {
-    .input-wrapper {
-      background: rgba(30, 30, 30, 0.8);
-      border-color: rgba(255, 255, 255, 0.1);
-    }
-
-    .input-wrapper:focus-within {
-      background: rgba(30, 30, 30, 0.95);
-      border-color: rgba(102, 126, 234, 0.5);
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15),
-                  0 4px 12px rgba(0, 0, 0, 0.3);
-    }
-
-    input {
-      color: #f6f6f6;
-    }
-
-    input::placeholder {
-      color: #666;
-    }
-
-    input:focus::placeholder {
-      color: #555;
-    }
-  }
 </style>

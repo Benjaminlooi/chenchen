@@ -62,11 +62,11 @@
 <style>
   .provider-panel {
     position: absolute;
-    border: 2px solid;
+    border: 2px solid #444;
     border-radius: 8px;
-    background: white;
+    background: #2a2a2a;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     transition: left 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
                 top 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
                 width 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
@@ -93,13 +93,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f9f9f9;
+    background: #1a1a1a;
     position: relative;
   }
 
   .webview-placeholder {
     text-align: center;
-    color: #666;
+    color: #ccc;
     padding: 0 1rem;
     pointer-events: none;
   }
@@ -110,12 +110,12 @@
 
   .hint {
     font-size: 0.85rem;
-    color: #888;
+    color: #aaa;
   }
 
   .debug-info {
     font-size: 0.75rem;
-    color: #999;
+    color: #888;
     font-family: monospace;
   }
 
@@ -128,24 +128,5 @@
     border: 3px dashed rgba(255, 0, 0, 0.5);
     pointer-events: none;
     z-index: 9999;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .provider-panel {
-      background: #2a2a2a;
-      border-color: #444;
-    }
-
-    .panel-content {
-      background: #1a1a1a;
-    }
-
-    .webview-placeholder {
-      color: #ccc;
-    }
-
-    .hint {
-      color: #aaa;
-    }
   }
 </style>

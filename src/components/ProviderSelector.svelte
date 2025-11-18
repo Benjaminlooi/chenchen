@@ -155,28 +155,28 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.5rem 1rem;
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(30, 30, 30, 0.8);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     font-family: inherit;
     font-size: 0.9rem;
-    color: #333;
+    color: #f6f6f6;
     min-width: 180px;
   }
 
   .menu-button:hover {
-    background: rgba(255, 255, 255, 0.95);
-    border-color: rgba(102, 126, 234, 0.3);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    background: rgba(30, 30, 30, 0.95);
+    border-color: rgba(102, 126, 234, 0.5);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   }
 
   .menu-button:active {
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(30, 30, 30, 0.95);
     border-color: rgba(102, 126, 234, 0.5);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
   }
 
   .button-label {
@@ -222,18 +222,4 @@
     flex-shrink: 0;
   }
 
-  /* Dark mode support */
-  @media (prefers-color-scheme: dark) {
-    .menu-button {
-      background: rgba(30, 30, 30, 0.8);
-      border-color: rgba(255, 255, 255, 0.1);
-      color: #f6f6f6;
-    }
-
-    .menu-button:hover,
-    .menu-button:active {
-      background: rgba(30, 30, 30, 0.95);
-      border-color: rgba(102, 126, 234, 0.5);
-    }
-  }
 </style>

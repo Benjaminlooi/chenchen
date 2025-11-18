@@ -324,8 +324,8 @@
     font-size: 16px;
     line-height: 24px;
     font-weight: 400;
-    color: #0f0f0f;
-    background-color: #f6f6f6;
+    color: #f6f6f6;
+    background-color: #2f2f2f;
     margin: 0;
     padding: 0;
   }
@@ -343,11 +343,11 @@
     align-items: center;
     gap: 1rem;
     padding: 1rem 1.5rem;
-    background: linear-gradient(to top, rgba(248, 248, 248, 0.98), rgba(255, 255, 255, 0.95));
+    background: linear-gradient(to top, rgba(20, 20, 20, 0.95), rgba(26, 26, 26, 0.9));
     backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
     flex-shrink: 0;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
     position: relative;
     z-index: 1000;
   }
@@ -357,8 +357,8 @@
     height: 32px;
     background: linear-gradient(to bottom,
       transparent,
-      rgba(0, 0, 0, 0.1) 20%,
-      rgba(0, 0, 0, 0.1) 80%,
+      rgba(255, 255, 255, 0.12) 20%,
+      rgba(255, 255, 255, 0.12) 80%,
       transparent
     );
   }
@@ -366,7 +366,7 @@
   .layout-container {
     position: relative;
     flex: 1;
-    background: transparent;
+    background: #1a1a1a;
     overflow: hidden;
   }
 
@@ -375,38 +375,8 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: #999;
+    color: #888;
     font-size: 1.1rem;
     font-style: italic;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :global(body) {
-      color: #f6f6f6;
-      background-color: #2f2f2f;
-    }
-
-    .bottom-bar {
-      background: linear-gradient(to top, rgba(20, 20, 20, 0.95), rgba(26, 26, 26, 0.9));
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
-    }
-
-    .divider {
-      background: linear-gradient(to bottom,
-        transparent,
-        rgba(255, 255, 255, 0.12) 20%,
-        rgba(255, 255, 255, 0.12) 80%,
-        transparent
-      );
-    }
-
-    .layout-container {
-      background: #1a1a1a;
-    }
-
-    .layout-placeholder {
-      color: #888;
-    }
   }
 </style>
