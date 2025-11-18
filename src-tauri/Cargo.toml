@@ -31,5 +31,12 @@ schemars = "0.8"
 [dev-dependencies]
 mockall = "0.13"
 pretty_assertions = "1"
-tauri = { version = "2", features = ["test"] }
 tempfile = "3"
+
+# Git patches for Linux multiwebview positioning fix
+# See: https://github.com/tauri-apps/tauri/issues/10420
+# [patch.crates-io]
+# tao = { git = "https://github.com/Benjaminlooi/tao.git" }
+# tauri-runtime = { git = "https://github.com/Benjaminlooi/tauri.git" }
+# tauri-runtime-wry = { git = "https://github.com/Benjaminlooi/tauri.git" }
+# tauri-utils = { git = "https://github.com/Benjaminlooi/tauri.git" }

@@ -87,7 +87,8 @@ chenchen/
 │   └── tests/              # Rust tests
 ├── docs/                   # Documentation
 │   ├── privacy-policy.md
-│   └── testing-guide.md
+│   ├── testing-guide.md
+│   └── linux-webview-positioning-fix.md
 └── specs/                  # Feature specifications
 ```
 
@@ -223,6 +224,31 @@ Edit `src-tauri/config/providers.json`:
 - Verify provider websites are accessible
 - Review timeout settings (30s default)
 
+### Linux: Webviews stacking vertically instead of positioning correctly
+This is a known GTK issue that affects all Tauri multiwebview applications on Linux. The project includes patches to fix this:
+
+**Symptoms:**
+- Multiple webviews stack vertically
+- `set_webview_position()` and `set_webview_size()` are ignored
+- Works fine on Windows/macOS but fails on Linux
+
+**Solution:**
+The patches are already applied in `Cargo.toml`. If you cloned the repository, they should work automatically. To verify:
+
+```bash
+# Check that patches are applied
+cargo tree -p tao --depth 0
+cargo tree -p tauri-runtime-wry --depth 0
+
+# Should show GitHub URLs from Benjaminlooi forks
+```
+
+**For more details**, see [docs/linux-webview-positioning-fix.md](docs/linux-webview-positioning-fix.md)
+
+**Related Issues:**
+- https://github.com/tauri-apps/tauri/issues/10420
+- https://github.com/tauri-apps/tauri/issues/13071
+
 ## Contributing
 
 Contributions are welcome! Please:
@@ -254,6 +280,6 @@ Contributions are welcome! Please:
 
 ---
 
-**Version**: 0.1.0
+**Version**: 0.1.1
 **Status**: MVP Complete
-**Platform**: Windows, macOS, Linux
+**Platform**: Windows, macOS, Linux (with positioning patches)
