@@ -269,6 +269,34 @@ Update the patch git URLs to match the required versions, or pin your Tauri vers
 3. Platform-specific code path - Check that your code runs the GTK path
 4. Window created with `with_default_vbox(false)` - Fix requires default vbox enabled
 
+### Webviews Lose Position on Window Resize
+
+**Symptom**: Webviews move to the top-left corner when the main window is resized
+
+**Root Cause**: Using separate `set_position()` and `set_size()` calls doesn't properly trigger GTK Fixed container repositioning
+
+**Solution**: Use `set_bounds()` instead, which properly handles GTK Fixed container updates:
+
+```rust
+// BEFORE (incorrect for GTK Fixed)
+webview.set_position(Position::Logical(position))?;
+webview.set_size(Size::Logical(size))?;
+
+// AFTER (correct for GTK Fixed)
+let bounds = Rect {
+    position: Position::Logical(position),
+    size: Size::Logical(size),
+};
+webview.set_bounds(bounds)?;
+```
+
+When the window is resized, the frontend must recalculate webview positions and call `set_bounds()` to update all webviews. The `set_bounds()` method internally calls `gtk_fixed_move()` and properly updates child widget positions within the Fixed container.
+
+**Implementation in ChenChen**:
+- Frontend listens for window resize events (src/routes/+page.svelte:38)
+- Debounced handler recalculates panel bounds (src/routes/+page.svelte:86-95)
+- Backend command uses `set_bounds()` for updates (src-tauri/src/commands.rs:289-291)
+
 ## Performance Impact
 
 The fix has minimal performance impact:
@@ -306,6 +334,6 @@ These patches maintain the same license as the original Tauri and tao projects (
 
 ---
 
-**Last Updated**: 2025-11-18
-**Tauri Version**: 2.5.1
-**Status**: Active patch, awaiting upstream merge
+**Last Updated**: 2025-11-19
+**Tauri Version**: 2.9.3
+**Status**: Active patch with resize fix, awaiting upstream merge

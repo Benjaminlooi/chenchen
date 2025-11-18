@@ -263,8 +263,7 @@ pub async fn sync_provider_webview(
     height: f64,
 ) -> Result<(), CommandError> {
     use tauri::{Manager, WebviewUrl, WebviewBuilder};
-    use tauri::Position;
-    use tauri::Size;
+    use tauri::{Position, Rect, Size};
 
     let label = format!("{}-webview", provider_id.as_str().to_lowercase());
 
@@ -281,14 +280,16 @@ pub async fn sync_provider_webview(
 
     // Check if webview already exists
     if let Some(webview) = app.get_webview(&label) {
-        // Update position and size
-        webview.set_position(Position::Logical(tauri::LogicalPosition { x, y }))
-            .map_err(|e| CommandError::internal(format!("Failed to set position: {}", e)))?;
+        // Update bounds using set_bounds for proper GTK Fixed container handling
+        let bounds = Rect {
+            position: Position::Logical(tauri::LogicalPosition { x, y }),
+            size: Size::Logical(tauri::LogicalSize { width, height }),
+        };
 
-        webview.set_size(Size::Logical(tauri::LogicalSize { width, height }))
-            .map_err(|e| CommandError::internal(format!("Failed to set size: {}", e)))?;
+        webview.set_bounds(bounds)
+            .map_err(|e| CommandError::internal(format!("Failed to set bounds: {}", e)))?;
 
-        log_info!("Updated existing webview", {
+        log_info!("Updated existing webview bounds", {
             "label": &label
         });
     } else {
