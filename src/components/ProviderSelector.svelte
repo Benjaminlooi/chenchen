@@ -154,42 +154,49 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.5rem 1rem;
-    background: rgba(30, 30, 30, 0.8);
-    backdrop-filter: blur(10px);
+    padding: 0.5rem 1rem 0.5rem 1.25rem;
+    background: rgba(30, 30, 30, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
+    border-radius: 9999px; /* Pill shape */
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    font-family: inherit;
-    font-size: 0.9rem;
-    color: #f6f6f6;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    color: #ffffff;
     min-width: 180px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   }
 
   .menu-button:hover {
-    background: rgba(30, 30, 30, 0.95);
-    border-color: rgba(102, 126, 234, 0.5);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    background: rgba(40, 40, 40, 0.8);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(59, 130, 246, 0.3);
+    transform: translateY(-2px);
   }
 
   .menu-button:active {
-    background: rgba(30, 30, 30, 0.95);
-    border-color: rgba(102, 126, 234, 0.5);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+    transform: scale(0.98);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   }
 
   .button-label {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
     flex: 1;
   }
 
   .button-label svg {
-    width: 18px;
-    height: 18px;
-    color: #667eea;
+    width: 20px;
+    height: 20px;
+    color: #60a5fa; /* Light blue */
+    transition: color 0.3s ease;
+  }
+
+  .menu-button:hover .button-label svg {
+    color: #93c5fd;
   }
 
   .label-text {
@@ -199,27 +206,34 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     font-weight: 500;
+    letter-spacing: 0.01em;
   }
 
   .count-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 20px;
-    height: 20px;
+    min-width: 22px;
+    height: 22px;
     padding: 0 6px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: white;
-    border-radius: 10px;
+    border-radius: 9999px;
     font-size: 0.75rem;
     font-weight: 600;
+    box-shadow: 0 2px 5px rgba(37, 99, 235, 0.4);
   }
 
   .chevron {
     width: 16px;
     height: 16px;
-    transition: transform 0.2s ease;
+    color: rgba(255, 255, 255, 0.5);
+    transition: transform 0.3s ease, color 0.3s ease;
     flex-shrink: 0;
   }
 
+  .menu-button:hover .chevron {
+    color: rgba(255, 255, 255, 0.8);
+    transform: translateY(1px);
+  }
 </style>

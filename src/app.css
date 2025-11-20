@@ -2,36 +2,36 @@
 /* Consistent theming and CSS variables */
 
 :root {
-  /* Enforce dark mode only */
-  color-scheme: dark;
+  /* Premium Dark Theme Palette */
+  --primary-color: #3b82f6; /* Vibrant Blue */
+  --primary-hover: #2563eb;
+  --primary-active: #1d4ed8;
+  --primary-glow: rgba(59, 130, 246, 0.5);
 
-  /* Color Palette */
-  --primary-color: #4a9eff;
-  --primary-hover: #3a8eef;
-  --primary-active: #2a7edf;
+  --accent-color: #8b5cf6; /* Violet */
+  --accent-glow: rgba(139, 92, 246, 0.5);
 
-  --success-color: #4caf50;
-  --success-bg: #1a3a1a;
-  --warning-color: #ff9800;
-  --warning-bg: #3a3a1a;
-  --warning-text: #ffc107;
-  --warning-border: #ffc107;
-  --error-color: #f44336;
-  --error-bg: #3a1a1a;
-  --error-border: #6a2a2a;
-  --error-text: #ff6666;
+  --success-color: #10b981;
+  --success-bg: rgba(16, 185, 129, 0.1);
+  --warning-color: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.1);
+  --error-color: #ef4444;
+  --error-bg: rgba(239, 68, 68, 0.1);
 
-  /* Neutral Colors - DARK MODE ONLY */
-  --text-primary: #f6f6f6;
-  --text-secondary: #ccc;
-  --text-tertiary: #888;
+  /* Neutral Colors - Deep Dark */
+  --text-primary: #ffffff;
+  --text-secondary: #a3a3a3;
+  --text-tertiary: #737373;
 
-  --bg-primary: #1a1a1a;
-  --bg-secondary: #2f2f2f;
-  --bg-tertiary: #444;
+  --bg-primary: #0a0a0a;   /* Almost black */
+  --bg-secondary: #171717; /* Dark gray */
+  --bg-tertiary: #262626;  /* Lighter gray */
+  --bg-glass: rgba(23, 23, 23, 0.7);
+  --bg-glass-strong: rgba(10, 10, 10, 0.85);
 
-  --border-color: #444;
-  --border-color-hover: #666;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-color-hover: rgba(255, 255, 255, 0.15);
+  --border-highlight: rgba(255, 255, 255, 0.1);
 
   /* Spacing */
   --spacing-xs: 0.25rem;
@@ -39,25 +39,31 @@
   --spacing-md: 1rem;
   --spacing-lg: 1.5rem;
   --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
 
   /* Border Radius */
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.15);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
+  --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.15);
 
   /* Transitions */
-  --transition-fast: 0.15s ease;
-  --transition-normal: 0.2s ease;
-  --transition-slow: 0.3s ease;
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 
   /* Typography */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-mono: 'Fira Code', 'Courier New', monospace;
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: 'Outfit', 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
@@ -65,6 +71,7 @@
   --font-size-lg: 1.125rem;
   --font-size-xl: 1.25rem;
   --font-size-2xl: 1.5rem;
+  --font-size-3xl: 2rem;
 }
 
 /* Global Resets */
@@ -324,4 +331,27 @@ input[type="checkbox"] {
     --spacing-md: 0.75rem;
     --spacing-lg: 1rem;
   }
+}
+
+/* Glassmorphism Utilities */
+.glass {
+  background: rgba(23, 23, 23, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-strong {
+  background: rgba(10, 10, 10, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-panel {
+  background: rgba(30, 30, 30, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }

@@ -269,6 +269,10 @@
 
         return {
           providerId: dimension.provider_id,
+          // x: Math.floor(contentRect.left),
+          // y: Math.floor(contentRect.top),
+          // width: (Math.ceil(contentRect.right) - Math.floor(contentRect.left)),
+          // height: (Math.ceil(contentRect.bottom) - Math.floor(contentRect.top)),
           x: contentRect.x,
           y: contentRect.y,
           width: contentRect.width,
@@ -320,14 +324,15 @@
 
 <style>
   :global(body) {
-    font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 16px;
-    line-height: 24px;
+    line-height: 1.5;
     font-weight: 400;
-    color: #f6f6f6;
-    background-color: #2f2f2f;
+    color: #ffffff;
+    background-color: #0a0a0a;
     margin: 0;
     padding: 0;
+    overflow: hidden; /* Prevent scrollbars on body */
   }
 
   .container {
@@ -335,39 +340,58 @@
     flex-direction: column;
     height: 100vh;
     overflow: hidden;
-    background: transparent;
+    background: radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 25%);
+    background-size: 120% 120%;
+    animation: background-drift 20s ease-in-out infinite alternate;
+    position: relative;
+  }
+
+  @keyframes background-drift {
+    0% {
+      background-position: 0% 50%;
+    }
+    100% {
+      background-position: 100% 50%;
+    }
+  }
+
+  /* Mesh gradient background effect */
+  .container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
   }
 
   .bottom-bar {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 1rem 1.5rem;
-    background: linear-gradient(to top, rgba(20, 20, 20, 0.95), rgba(26, 26, 26, 0.9));
-    backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    gap: 1.5rem;
+    padding: 1.5rem 2rem 2rem;
+    background: linear-gradient(to top, rgba(10, 10, 10, 0.95) 0%, rgba(10, 10, 10, 0.8) 60%, transparent 100%);
     flex-shrink: 0;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
     position: relative;
     z-index: 1000;
   }
 
   .divider {
     width: 1px;
-    height: 32px;
-    background: linear-gradient(to bottom,
-      transparent,
-      rgba(255, 255, 255, 0.12) 20%,
-      rgba(255, 255, 255, 0.12) 80%,
-      transparent
-    );
+    height: 24px;
+    background: rgba(255, 255, 255, 0.1);
   }
 
   .layout-container {
     position: relative;
     flex: 1;
-    background: #1a1a1a;
+    background: transparent; /* Let container gradient show through */
     overflow: hidden;
+    z-index: 1;
   }
 
   .layout-placeholder {
@@ -375,8 +399,9 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: #888;
+    color: rgba(255, 255, 255, 0.3);
     font-size: 1.1rem;
-    font-style: italic;
+    font-weight: 300;
+    letter-spacing: 0.02em;
   }
 </style>

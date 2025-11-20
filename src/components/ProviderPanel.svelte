@@ -29,16 +29,16 @@
 
 <div
   class="provider-panel"
-  style:left={toPercent(dimension.x)}
-  style:top={toPercent(dimension.y)}
-  style:width={toPercent(dimension.width)}
-  style:height={toPercent(dimension.height)}
-  style:border-color={getProviderColor(dimension.provider_id)}
+  style:left="calc({toPercent(dimension.x)} + 8px)"
+  style:top="calc({toPercent(dimension.y)} + 8px)"
+  style:width="calc({toPercent(dimension.width)} - 16px)"
+  style:height="calc({toPercent(dimension.height)} - 16px)"
+  style:--provider-color={getProviderColor(dimension.provider_id)}
   data-provider-id={dimension.provider_id}
-  in:fade={{ duration: 150, delay: 100 }}
-  out:fade={{ duration: 150 }}
+  in:fade={{ duration: 300, delay: 100 }}
+  out:fade={{ duration: 200 }}
 >
-  <div class="panel-header" style:background={getProviderColor(dimension.provider_id)}>
+  <div class="panel-header">
     <h3>{providerName}</h3>
   </div>
 
@@ -62,61 +62,89 @@
 <style>
   .provider-panel {
     position: absolute;
-    border: 2px solid #444;
-    border-radius: 8px;
-    background: #2a2a2a;
+    border-radius: 16px;
+    background: rgba(30, 30, 30, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    transition: left 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                top 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                width 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                height 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    transition: left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                top 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                width 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                height 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     will-change: left, top, width, height;
+    display: flex;
+    flex-direction: column;
   }
 
   .panel-header {
-    padding: 0.5rem 1rem;
-    color: white;
+    padding: 0.75rem 1rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.02);
   }
 
   .panel-header h3 {
     margin: 0;
-    font-size: 1rem;
+    font-size: 0.85rem;
     font-weight: 600;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(4px);
+  }
+
+  /* Provider indicator dot */
+  .panel-header h3::before {
+    content: '';
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--provider-color, #666);
+    box-shadow: 0 0 8px var(--provider-color, #666);
   }
 
   .panel-content {
-    height: calc(100% - 2.5rem);
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #1a1a1a;
+    background: rgba(0, 0, 0, 0.2);
     position: relative;
   }
 
   .webview-placeholder {
     text-align: center;
-    color: #ccc;
-    padding: 0 1rem;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 0 1.5rem;
     pointer-events: none;
+    max-width: 300px;
   }
 
   .webview-placeholder p {
     margin: 0.5rem 0;
+    line-height: 1.5;
   }
 
   .hint {
     font-size: 0.85rem;
-    color: #aaa;
+    color: rgba(255, 255, 255, 0.3);
   }
 
   .debug-info {
     font-size: 0.75rem;
-    color: #888;
-    font-family: monospace;
+    color: rgba(255, 255, 255, 0.2);
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 1rem;
   }
 
   .debug-border {
@@ -125,8 +153,9 @@
     left: 0;
     right: 0;
     bottom: 0;
-    border: 3px dashed rgba(255, 0, 0, 0.5);
+    border: 2px dashed rgba(255, 255, 255, 0.1);
     pointer-events: none;
     z-index: 9999;
+    opacity: 0; /* Hidden by default, useful for debugging */
   }
 </style>
