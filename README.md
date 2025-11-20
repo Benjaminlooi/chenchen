@@ -2,6 +2,10 @@
 
 **Send prompts to multiple LLM providers simultaneously** - A privacy-focused desktop application built with Tauri and Rust.
 
+## Demo
+
+![ChenChen Demo](.github/assets/chenchen_uIVEHY1nRP.gif)
+
 ## Features
 
 - 🤖 **Multi-Provider Support**: Send prompts to ChatGPT, Gemini, and Claude simultaneously
