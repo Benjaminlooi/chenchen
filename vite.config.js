@@ -30,11 +30,16 @@ export default defineConfig(async () => ({
     },
   },
 
+  // Force client-side Svelte for testing
+  resolve: {
+    conditions: ["browser"],
+  },
+
   // Vitest configuration
   test: {
-    environment: 'jsdom',
+    environment: "jsdom",
     globals: true,
-    setupFiles: ['./tests/setup.ts'],
-    include: ['tests/**/*.test.ts', 'tests/**/*.test.js'],
+    setupFiles: ["./tests/setup.ts"],
+    include: ["tests/**/*.test.ts", "tests/**/*.test.js"],
   },
 }));

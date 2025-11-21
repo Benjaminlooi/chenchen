@@ -10,7 +10,7 @@
   let providers = $state<Provider[]>([]);
   let loading = $state(true);
   let togglingProviders = $state(new Set<ProviderId>());
-  let buttonElement: HTMLButtonElement | null = null;
+  let buttonElement = $state<HTMLButtonElement | null>(null);
 
   // Load providers on component mount
   onMount(() => {

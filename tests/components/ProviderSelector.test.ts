@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/svelte';
+import { render, screen, waitFor } from "@testing-library/svelte";
 import ProviderSelector from '../../src/components/ProviderSelector.svelte';
 import { tauri } from '../../src/services/tauri';
 import { ProviderId } from '../../src/types';
@@ -13,8 +13,21 @@ vi.mock('../../src/services/tauri', () => ({
   },
 }));
 
-vi.mock('../../src/services/providerWebviews', () => ({
-  focusProviderWebview: vi.fn(),
+// Mock Tauri API menu modules
+vi.mock('@tauri-apps/api/menu', () => ({
+  Menu: {
+    new: vi.fn(() => ({
+      append: vi.fn(),
+      popup: vi.fn(),
+    })),
+  },
+  CheckMenuItem: {
+    new: vi.fn(),
+  },
+}));
+
+vi.mock('@tauri-apps/api/window', () => ({
+  LogicalPosition: vi.fn(),
 }));
 
 describe('ProviderSelector', () => {
@@ -49,100 +62,110 @@ describe('ProviderSelector', () => {
     vi.clearAllMocks();
   });
 
-  it('loads and displays providers on mount', async () => {
+  it("displays button with default text when no providers are selected", async () => {
     vi.mocked(tauri.getProviders).mockResolvedValue(mockProviders);
 
     render(ProviderSelector);
 
-    expect(await screen.findByText('ChatGPT')).toBeInTheDocument();
-    expect(screen.getByText('Gemini')).toBeInTheDocument();
-    expect(screen.getByText('Claude')).toBeInTheDocument();
+    // Wait for the button to appear (loading should be false)
+    const button = await screen.findByTestId("provider-selector-button");
+    expect(button).toBeInTheDocument();
+
+    // Should show "Select LLMs" when no providers are selected
+    expect(screen.getByText("Select LLMs")).toBeInTheDocument();
   });
 
-  it('displays loading state initially', () => {
-    vi.mocked(tauri.getProviders).mockImplementation(
-      () => new Promise(() => {}) // Never resolves
-    );
+  it("displays selected provider names when providers are selected", async () => {
+    const selectedProviders = [
+      { ...mockProviders[0], is_selected: true },
+      { ...mockProviders[1], is_selected: false },
+      { ...mockProviders[2], is_selected: false },
+    ];
+    vi.mocked(tauri.getProviders).mockResolvedValue(selectedProviders);
 
     render(ProviderSelector);
 
-    expect(screen.getByText('Loading providers...')).toBeInTheDocument();
+    const button = await screen.findByTestId("provider-selector-button");
+    expect(button).toBeInTheDocument();
+
+    // Should show the selected provider name
+    expect(screen.getByText("ChatGPT")).toBeInTheDocument();
+
+    // Should show count badge
+    expect(screen.getByText("1")).toBeInTheDocument();
   });
 
-  it('displays error when loading fails', async () => {
-    vi.mocked(tauri.getProviders).mockRejectedValue(
-      new Error('Failed to load')
-    );
-
-    render(ProviderSelector);
-
-    expect(
-      await screen.findByText(/Failed to load/i)
-    ).toBeInTheDocument();
-  });
-
-  it('calls updateProviderSelection when checkbox is toggled', async () => {
-    vi.mocked(tauri.getProviders).mockResolvedValue(mockProviders);
-    vi.mocked(tauri.updateProviderSelection).mockResolvedValue({
-      ...mockProviders[0],
+  it('displays "All LLMs" when all providers are selected', async () => {
+    const allSelectedProviders = mockProviders.map((p) => ({
+      ...p,
       is_selected: true,
-    });
+    }));
+    vi.mocked(tauri.getProviders).mockResolvedValue(allSelectedProviders);
 
     render(ProviderSelector);
 
-    const checkbox = (await screen.findByTestId(
-      'provider-checkbox-ChatGPT'
-    )) as HTMLInputElement;
+    const button = await screen.findByTestId("provider-selector-button");
+    expect(button).toBeInTheDocument();
 
-    await fireEvent.click(checkbox);
+    // Should show "All LLMs" when all are selected
+    expect(screen.getByText("All LLMs")).toBeInTheDocument();
 
-    expect(tauri.updateProviderSelection).toHaveBeenCalledWith(
-      ProviderId.ChatGPT,
-      true
-    );
+    // Should show count badge with total count
+    expect(screen.getByText("3")).toBeInTheDocument();
   });
 
-  it('displays error when update fails and reverts checkbox', async () => {
-    vi.mocked(tauri.getProviders).mockResolvedValue(mockProviders);
-    vi.mocked(tauri.updateProviderSelection).mockRejectedValue(
-      new Error('At least one provider must be selected')
-    );
-
-    render(ProviderSelector);
-
-    const checkbox = (await screen.findByTestId(
-      'provider-checkbox-ChatGPT'
-    )) as HTMLInputElement;
-
-    await fireEvent.click(checkbox);
-
-    expect(
-      await screen.findByText(/At least one provider must be selected/i)
-    ).toBeInTheDocument();
-
-    // Checkbox should be reverted
-    expect(checkbox.checked).toBe(false);
-  });
-
-  it('displays selected provider count', async () => {
-    vi.mocked(tauri.getProviders).mockResolvedValue([
+  it("displays comma-separated names when multiple providers are selected", async () => {
+    const multipleSelected = [
       { ...mockProviders[0], is_selected: true },
       { ...mockProviders[1], is_selected: true },
-      mockProviders[2],
-    ]);
+      { ...mockProviders[2], is_selected: false },
+    ];
+    vi.mocked(tauri.getProviders).mockResolvedValue(multipleSelected);
 
     render(ProviderSelector);
 
-    expect(await screen.findByText(/Selected: 2 \/ 3/)).toBeInTheDocument();
+    const button = await screen.findByTestId("provider-selector-button");
+    expect(button).toBeInTheDocument();
+
+    // Should show comma-separated names
+    expect(screen.getByText("ChatGPT, Gemini")).toBeInTheDocument();
+
+    // Should show count badge
+    expect(screen.getByText("2")).toBeInTheDocument();
   });
 
-  it('displays auth badge for unauthenticated providers', async () => {
+  it("loads providers on mount", async () => {
     vi.mocked(tauri.getProviders).mockResolvedValue(mockProviders);
 
     render(ProviderSelector);
 
-    // Claude is not authenticated in mock data
-    const claudeItem = (await screen.findByText('Claude')).closest('label');
-    expect(claudeItem?.querySelector('.auth-badge')).toBeInTheDocument();
+    // Wait for providers to load
+    await waitFor(() => {
+      expect(tauri.getProviders).toHaveBeenCalled();
+    });
+
+    const button = await screen.findByTestId("provider-selector-button");
+    expect(button).toBeInTheDocument();
+  });
+
+  it("handles loading errors gracefully", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    vi.mocked(tauri.getProviders).mockRejectedValue(
+      new Error("Failed to load providers")
+    );
+
+    render(ProviderSelector);
+
+    // Wait for the error to be logged
+    await waitFor(() => {
+      expect(consoleError).toHaveBeenCalledWith(
+        "Failed to load providers:",
+        expect.any(Error)
+      );
+    });
+
+    consoleError.mockRestore();
   });
 });
