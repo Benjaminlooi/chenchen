@@ -78,22 +78,26 @@ chenchen/
 │   ├── components/         # UI components
 │   ├── routes/             # Svelte routes
 │   ├── services/           # TypeScript services
+│   ├── app.css             # Global styles
+│   ├── app.html            # App entry point
 │   └── types.ts            # TypeScript types
 ├── src-tauri/              # Rust backend
 │   ├── src/
-│   │   ├── commands.rs     # Tauri commands (IPC)
-│   │   ├── providers/      # Provider management
-│   │   ├── layout/         # Layout calculation
-│   │   ├── webview/        # Webview session management
 │   │   ├── injection/      # JavaScript injection
+│   │   ├── layout/         # Layout calculation
+│   │   ├── providers/      # Provider management
 │   │   ├── status/         # Submission tracking
-│   │   └── logging.rs      # Structured logging
+│   │   ├── commands.rs     # Tauri commands (IPC)
+│   │   ├── lib.rs          # Library entry point
+│   │   ├── logging.rs      # Structured logging
+│   │   ├── main.rs         # Binary entry point
+│   │   ├── state.rs        # App state management
+│   │   └── types.rs        # Shared types
 │   └── tests/              # Rust tests
-├── docs/                   # Documentation
-│   ├── privacy-policy.md
-│   ├── testing-guide.md
-│   └── linux-webview-positioning-fix.md
-└── specs/                  # Feature specifications
+└── docs/                   # Documentation
+    ├── privacy-policy.md
+    ├── testing-guide.md
+    └── linux-webview-positioning-fix.md
 ```
 
 ### Running Tests
