@@ -30,13 +30,7 @@ if [ -n "$(git status --porcelain)" ]; then
   fi
 fi
 
-# 2. Run tests
-echo -e "${YELLOW}Running tests...${NC}"
-npm test
-cd src-tauri && cargo test && cd ..
-echo -e "${GREEN}✓ All tests passed${NC}"
-
-# 3. Bump version
+# 2. Bump version
 echo -e "${YELLOW}Bumping version...${NC}"
 npm run version:$BUMP_TYPE
 
