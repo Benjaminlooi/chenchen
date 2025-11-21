@@ -77,3 +77,7 @@ export async function syncProviderWebviews(bounds: PanelBounds[]): Promise<void>
 async function disposeProviderWebview(providerId: ProviderId): Promise<void> {
   await invoke('dispose_provider_webview', { providerId });
 }
+
+export async function refreshProviderWebview(providerId: ProviderId): Promise<void> {
+  await invoke('refresh_provider_webview', { providerId });
+}

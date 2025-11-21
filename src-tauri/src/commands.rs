@@ -353,6 +353,38 @@ pub async fn dispose_provider_webview(
     Ok(())
 }
 
+/// Refreshes an existing provider webview
+#[tauri::command]
+pub async fn refresh_provider_webview(
+    app: tauri::AppHandle,
+    provider_id: ProviderId,
+) -> Result<(), CommandError> {
+    use tauri::Manager;
+
+    let label = format!("{}-webview", provider_id.as_str().to_lowercase());
+
+    log_info!("Refreshing provider webview", {
+        "provider_id": format!("{:?}", provider_id),
+        "label": &label
+    });
+
+    if let Some(webview) = app.get_webview(&label) {
+        webview
+            .reload()
+            .map_err(|e| CommandError::internal(format!("Failed to reload webview: {}", e)))?;
+
+        log_info!("Reloaded provider webview", {
+            "label": &label
+        });
+    } else {
+        log_info!("No provider webview found to refresh", {
+            "label": &label
+        });
+    }
+
+    Ok(())
+}
+
 /// Gets the status of a specific submission
 #[tauri::command]
 pub fn get_submission_status(
