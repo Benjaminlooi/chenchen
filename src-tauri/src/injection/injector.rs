@@ -16,6 +16,11 @@ impl Injector {
         Ok(Self {})
     }
 
+    /// Returns the stealth script to be injected into webviews
+    pub fn get_stealth_script() -> &'static str {
+        include_str!("stealth.js")
+    }
+
     /// Prepares an injection script for execution
     ///
     /// This generates the JavaScript code but does not execute it.
@@ -113,5 +118,24 @@ mod tests {
         assert!(result.is_ok());
         let injection_result = result.unwrap();
         assert!(injection_result.success);
+    }
+
+    #[test]
+    fn test_get_stealth_script_returns_content() {
+        let script = Injector::get_stealth_script();
+        assert!(!script.is_empty());
+        // Check for key components of the stealth script
+        assert!(script.contains("webdriver"));
+        assert!(script.contains("window.chrome"));
+        assert!(script.contains("userAgentData")); // Client Hints
+        assert!(script.contains("vendor")); // Vendor spoofing
+        assert!(script.contains("productSub")); // ProductSub spoofing
+        assert!(script.contains("maxTouchPoints")); // MaxTouchPoints spoofing
+        assert!(script.contains("hardwareConcurrency")); // HardwareConcurrency spoofing
+        assert!(script.contains("toDataURL")); // Canvas noise
+        assert!(script.contains("permissions"));
+        assert!(script.contains("plugins"));
+        assert!(script.contains("mimeTypes"));
+        assert!(script.contains("mockReadonly"));
     }
 }
