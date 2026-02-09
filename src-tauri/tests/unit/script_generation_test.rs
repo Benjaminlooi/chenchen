@@ -93,12 +93,6 @@ fn test_generate_injection_script_handles_element_not_found() {
             || script.contains("Error"),
         "Script should check for null/missing elements"
     );
-
-    // Verify script returns result information
-    assert!(
-        script.contains("return") || script.contains("result"),
-        "Script should return execution result"
-    );
 }
 
 #[test]

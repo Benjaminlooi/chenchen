@@ -8,7 +8,8 @@
 /// 2. Sets the prompt value in the input element
 /// 3. Tries each submit selector in order until a button is found
 /// 4. Clicks the submit button
-/// 5. Returns a result object with success status
+///
+///
 ///
 /// # Arguments
 /// * `input_selectors` - CSS selectors for the prompt input element (tried in order)
