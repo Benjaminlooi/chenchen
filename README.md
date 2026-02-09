@@ -13,6 +13,8 @@
 - 💾 **Persistent Sessions**: Provider webviews with persistent authentication sessions
 - 📊 **Real-Time Status**: Track submission progress with retry logic and timeout handling
 - 🔐 **Authentication Detection**: Automatic detection of login requirements
+- 🛡️ **Anti-Detection**: Built-in Cloudflare bypass for uninterrupted access
+- 🔄 **Webview Control**: Refresh individual provider sessions
 - 🎨 **Split-Screen Layout**: Responsive grid layout for viewing multiple providers
 - ⚡ **Fast & Lightweight**: Built with Rust and Tauri 2.0
 
@@ -288,6 +290,6 @@ Contributions are welcome! Please:
 
 ---
 
-**Version**: 0.1.1
+**Version**: 0.2.0
 **Status**: MVP Complete
 **Platform**: Windows, macOS, Linux (with positioning patches)
