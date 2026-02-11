@@ -50,7 +50,7 @@
       "config_version": "1.0.0",
       "is_selected": true,
       "input_selectors": [
-        "div[contenteditable='true'][role='textbox']",
+        "div[contenteditable='true'][translate='no']",
         ".ProseMirror[contenteditable='true']",
         "fieldset textarea"
       ],
@@ -68,6 +68,62 @@
       ],
       "last_updated": "2025-11-13T00:00:00Z",
       "notes": "Claude uses ProseMirror editor (contenteditable div). Selectors may need updates as UI evolves."
+    },
+    "Perplexity": {
+      "provider_id": "Perplexity",
+      "config_version": "1.0.0",
+      "is_selected": false,
+      "input_selectors": [
+        "textarea[placeholder*='Ask anything']",
+        "textarea.w-full"
+      ],
+      "submit_selectors": [
+        "button[aria-label='Submit']",
+        "button.bg-super"
+      ],
+      "auth_check_selectors": [
+        "button:contains('Sign Up')",
+        "a[href*='/api/auth/signin']"
+      ],
+      "last_updated": "2026-02-10T00:00:00Z",
+      "notes": "Perplexity selectors based on common patterns. Default not selected."
+    },
+    "DeepSeek": {
+      "provider_id": "DeepSeek",
+      "config_version": "1.0.0",
+      "is_selected": false,
+      "input_selectors": [
+        "textarea#chat-input",
+        "textarea[placeholder*='Message DeepSeek']"
+      ],
+      "submit_selectors": [
+        "button[type='submit']",
+        "div[role='button'].send-icon"
+      ],
+      "auth_check_selectors": [
+        ".login-btn",
+        "div:contains('Login')"
+      ],
+      "last_updated": "2026-02-10T00:00:00Z",
+      "notes": "DeepSeek selectors based on common patterns. Default not selected."
+    },
+    "Ollama": {
+      "provider_id": "Ollama",
+      "config_version": "1.0.0",
+      "is_selected": false,
+      "input_selectors": [
+        "#user-input",
+        "textarea[name='prompt']"
+      ],
+      "submit_selectors": [
+        "button#send-btn",
+        "button[type='submit']"
+      ],
+      "auth_check_selectors": [
+        "body.authenticated"
+      ],
+      "last_updated": "2026-02-10T00:00:00Z",
+      "notes": "Ollama local instance. Assumes web UI wrapper or similar if using browser injection."
     }
   }
 }

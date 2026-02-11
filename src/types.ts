@@ -7,9 +7,12 @@ import { z } from 'zod';
  * Provider identifier enum for the three supported LLM providers
  */
 export enum ProviderId {
-  ChatGPT = 'ChatGPT',
-  Gemini = 'Gemini',
-  Claude = 'Claude',
+  ChatGPT = "ChatGPT",
+  Gemini = "Gemini",
+  Claude = "Claude",
+  Perplexity = "Perplexity",
+  DeepSeek = "DeepSeek",
+  Ollama = "Ollama",
 }
 
 export const ProviderIdSchema = z.nativeEnum(ProviderId);

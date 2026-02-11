@@ -67,6 +67,12 @@
         return '✨';
       case ProviderId.Claude:
         return '🧠';
+      case ProviderId.Perplexity:
+        return '🔍';
+      case ProviderId.DeepSeek:
+        return '🐳';
+      case ProviderId.Ollama:
+        return '🦙';
       default:
         return '💬';
     }

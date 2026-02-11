@@ -5,12 +5,12 @@ use chenchen_lib::providers::manager::ProviderManager;
 use chenchen_lib::types::ProviderId;
 
 #[test]
-fn test_new_returns_three_providers() {
-    // T022: ProviderManager::new() returns 3 providers
+fn test_new_returns_six_providers() {
+    // T022: ProviderManager::new() returns 6 providers
     let manager = ProviderManager::new();
     let providers = manager.get_all_providers();
 
-    assert_eq!(providers.len(), 3, "Should have exactly 3 providers");
+    assert_eq!(providers.len(), 6, "Should have exactly 6 providers");
 
     // Verify all three providers exist
     assert!(
@@ -24,6 +24,18 @@ fn test_new_returns_three_providers() {
     assert!(
         providers.iter().any(|p| p.id == ProviderId::Claude),
         "Should include Claude provider"
+    );
+    assert!(
+        providers.iter().any(|p| p.id == ProviderId::Perplexity),
+        "Should include Perplexity provider"
+    );
+    assert!(
+        providers.iter().any(|p| p.id == ProviderId::DeepSeek),
+        "Should include DeepSeek provider"
+    );
+    assert!(
+        providers.iter().any(|p| p.id == ProviderId::Ollama),
+        "Should include Ollama provider"
     );
 }
 
@@ -40,10 +52,20 @@ fn test_get_all_providers_returns_correct_data() {
             "Provider name should not be empty"
         );
         assert!(!provider.url.is_empty(), "Provider URL should not be empty");
-        assert!(
-            provider.is_selected,
-            "Providers should be selected by default"
-        );
+        if matches!(
+            provider.id,
+            ProviderId::ChatGPT | ProviderId::Gemini | ProviderId::Claude
+        ) {
+            assert!(
+                provider.is_selected,
+                "Legacy providers should be selected by default"
+            );
+        } else {
+            assert!(
+                !provider.is_selected,
+                "New providers should be unselected by default"
+            );
+        }
         assert!(
             !provider.is_authenticated,
             "Providers should be unauthenticated by default"
