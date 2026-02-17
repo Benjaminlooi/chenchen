@@ -36,6 +36,9 @@ impl ProviderManager {
                 Provider::new(ProviderId::ChatGPT, get_is_selected(ProviderId::ChatGPT)),
                 Provider::new(ProviderId::Gemini, get_is_selected(ProviderId::Gemini)),
                 Provider::new(ProviderId::Claude, get_is_selected(ProviderId::Claude)),
+                Provider::new(ProviderId::Perplexity, get_is_selected(ProviderId::Perplexity)),
+                Provider::new(ProviderId::DeepSeek, get_is_selected(ProviderId::DeepSeek)),
+                Provider::new(ProviderId::Ollama, get_is_selected(ProviderId::Ollama)),
             ],
         }
     }
@@ -107,11 +110,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_new_returns_three_providers() {
+    fn test_new_returns_six_providers() {
         let manager = ProviderManager::new();
         let providers = manager.get_all_providers();
 
-        assert_eq!(providers.len(), 3);
+        assert_eq!(providers.len(), 6);
         assert!(providers.iter().any(|p| p.id == ProviderId::ChatGPT));
         assert!(providers.iter().any(|p| p.id == ProviderId::Gemini));
         assert!(providers.iter().any(|p| p.id == ProviderId::Claude));

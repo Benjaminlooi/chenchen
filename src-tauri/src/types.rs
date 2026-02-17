@@ -7,6 +7,9 @@ pub enum ProviderId {
     ChatGPT,
     Gemini,
     Claude,
+    Perplexity,
+    DeepSeek,
+    Ollama,
 }
 
 impl ProviderId {
@@ -15,6 +18,9 @@ impl ProviderId {
             ProviderId::ChatGPT => "ChatGPT",
             ProviderId::Gemini => "Gemini",
             ProviderId::Claude => "Claude",
+            ProviderId::Perplexity => "Perplexity",
+            ProviderId::DeepSeek => "DeepSeek",
+            ProviderId::Ollama => "Ollama",
         }
     }
 
@@ -23,6 +29,9 @@ impl ProviderId {
             ProviderId::ChatGPT => "https://chat.openai.com/",
             ProviderId::Gemini => "https://gemini.google.com/",
             ProviderId::Claude => "https://claude.ai/",
+            ProviderId::Perplexity => "https://www.perplexity.ai/",
+            ProviderId::DeepSeek => "https://chat.deepseek.com/",
+            ProviderId::Ollama => "http://localhost:11434/",
         }
     }
 }

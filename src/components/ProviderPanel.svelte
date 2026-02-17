@@ -21,6 +21,12 @@
         return '#4285f4';
       case 'Claude':
         return '#d97757';
+      case 'Perplexity':
+        return '#22b39f';
+      case 'DeepSeek':
+        return '#4d6bfe';
+      case 'Ollama':
+        return '#ffffff';
       default:
         return '#666';
     }
