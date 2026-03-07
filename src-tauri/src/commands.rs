@@ -298,6 +298,13 @@ pub async fn sync_provider_webview(
         // T160: Inject stealth script to prevent bot detection
         let stealth_script = crate::injection::injector::Injector::get_stealth_script();
         
+        // T161: Platform-specific User-Agent corresponding to the stealth script
+        #[cfg(target_os = "macos")]
+        let webview_builder = WebviewBuilder::new(&label, WebviewUrl::External(url.parse().unwrap()))
+            .user_agent("Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.4 Safari/605.1.15")
+            .initialization_script(stealth_script);
+
+        #[cfg(not(target_os = "macos"))]
         let webview_builder = WebviewBuilder::new(&label, WebviewUrl::External(url.parse().unwrap()))
             .user_agent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
             .initialization_script(stealth_script);

@@ -17,8 +17,16 @@ impl Injector {
     }
 
     /// Returns the stealth script to be injected into webviews
+    // T161: Platform-specific stealth scripts
     pub fn get_stealth_script() -> &'static str {
-        include_str!("stealth.js")
+        #[cfg(target_os = "macos")]
+        {
+            include_str!("stealth_macos.js")
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            include_str!("stealth.js")
+        }
     }
 
     /// Prepares an injection script for execution
@@ -126,16 +134,25 @@ mod tests {
         assert!(!script.is_empty());
         // Check for key components of the stealth script
         assert!(script.contains("webdriver"));
-        assert!(script.contains("window.chrome"));
-        assert!(script.contains("userAgentData")); // Client Hints
         assert!(script.contains("vendor")); // Vendor spoofing
         assert!(script.contains("productSub")); // ProductSub spoofing
         assert!(script.contains("maxTouchPoints")); // MaxTouchPoints spoofing
         assert!(script.contains("hardwareConcurrency")); // HardwareConcurrency spoofing
         assert!(script.contains("toDataURL")); // Canvas noise
-        assert!(script.contains("permissions"));
         assert!(script.contains("plugins"));
         assert!(script.contains("mimeTypes"));
         assert!(script.contains("mockReadonly"));
+
+        #[cfg(not(target_os = "macos"))]
+        {
+            assert!(script.contains("window.chrome"));
+            assert!(script.contains("userAgentData")); // Client Hints
+            assert!(script.contains("permissions"));
+        }
+        
+        #[cfg(target_os = "macos")]
+        {
+            assert!(script.contains("Apple Computer, Inc."));
+        }
     }
 }
