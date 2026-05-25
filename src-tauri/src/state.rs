@@ -2,6 +2,7 @@ use crate::providers::config::ProviderConfigs;
 use crate::providers::manager::ProviderManager;
 use crate::status::tracker::StatusTracker;
 use log::{info, warn};
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 /// Application state shared across Tauri commands
@@ -16,7 +17,7 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn new() -> Self {
+    pub fn new(provider_preferences_path: Option<PathBuf>) -> Self {
         // Try to load provider configs
         let provider_configs = match ProviderConfigs::load() {
             Ok(configs) => {
@@ -30,7 +31,10 @@ impl AppState {
         };
 
         Self {
-            provider_manager: Mutex::new(ProviderManager::new()),
+            provider_manager: Mutex::new(match provider_preferences_path {
+                Some(path) => ProviderManager::with_preferences_path(path),
+                None => ProviderManager::new(),
+            }),
             provider_configs,
             status_tracker: Arc::new(StatusTracker::new()),
         }
@@ -39,6 +43,6 @@ impl AppState {
 
 impl Default for AppState {
     fn default() -> Self {
-        Self::new()
+        Self::new(None)
     }
 }

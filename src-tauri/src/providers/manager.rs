@@ -3,16 +3,33 @@
 use super::config::ProviderConfigs;
 use super::Provider;
 use crate::types::{CommandError, ProviderId};
+use serde::{Deserialize, Serialize};
+use std::fs;
+use std::path::{Path, PathBuf};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct ProviderPreferences {
+    selected_providers: Vec<ProviderId>,
+}
 
 /// Manages the three LLM providers and their selection state
 pub struct ProviderManager {
     providers: Vec<Provider>,
+    preferences_path: Option<PathBuf>,
 }
 
 impl ProviderManager {
     /// Creates a new ProviderManager with all three providers initialized
     /// Loads is_selected defaults from providers.json config
     pub fn new() -> Self {
+        Self::with_optional_preferences_path(None)
+    }
+
+    pub fn with_preferences_path(preferences_path: PathBuf) -> Self {
+        Self::with_optional_preferences_path(Some(preferences_path))
+    }
+
+    fn with_optional_preferences_path(preferences_path: Option<PathBuf>) -> Self {
         // Load provider configs to get is_selected defaults
         let configs = ProviderConfigs::load().unwrap_or_else(|e| {
             eprintln!("Warning: Failed to load provider configs: {}. Using default is_selected=true for all providers.", e);
@@ -31,16 +48,81 @@ impl ProviderManager {
                 .unwrap_or(true) // Default to selected if config not found
         };
 
-        Self {
-            providers: vec![
-                Provider::new(ProviderId::ChatGPT, get_is_selected(ProviderId::ChatGPT)),
-                Provider::new(ProviderId::Gemini, get_is_selected(ProviderId::Gemini)),
-                Provider::new(ProviderId::Claude, get_is_selected(ProviderId::Claude)),
-                Provider::new(ProviderId::Perplexity, get_is_selected(ProviderId::Perplexity)),
-                Provider::new(ProviderId::DeepSeek, get_is_selected(ProviderId::DeepSeek)),
-                Provider::new(ProviderId::Ollama, get_is_selected(ProviderId::Ollama)),
-            ],
+        let mut providers = vec![
+            Provider::new(ProviderId::ChatGPT, get_is_selected(ProviderId::ChatGPT)),
+            Provider::new(ProviderId::Gemini, get_is_selected(ProviderId::Gemini)),
+            Provider::new(ProviderId::Claude, get_is_selected(ProviderId::Claude)),
+            Provider::new(
+                ProviderId::Perplexity,
+                get_is_selected(ProviderId::Perplexity),
+            ),
+            Provider::new(ProviderId::DeepSeek, get_is_selected(ProviderId::DeepSeek)),
+            Provider::new(ProviderId::Ollama, get_is_selected(ProviderId::Ollama)),
+        ];
+
+        if let Some(path) = &preferences_path {
+            Self::apply_saved_preferences(&mut providers, path);
         }
+
+        Self {
+            providers,
+            preferences_path,
+        }
+    }
+
+    fn apply_saved_preferences(providers: &mut [Provider], preferences_path: &Path) {
+        let Ok(contents) = fs::read_to_string(preferences_path) else {
+            return;
+        };
+
+        let Ok(preferences) = serde_json::from_str::<ProviderPreferences>(&contents) else {
+            return;
+        };
+
+        if preferences.selected_providers.is_empty() || preferences.selected_providers.len() > 3 {
+            return;
+        }
+
+        if preferences
+            .selected_providers
+            .iter()
+            .any(|provider_id| !providers.iter().any(|provider| provider.id == *provider_id))
+        {
+            return;
+        }
+
+        for provider in providers {
+            provider.is_selected = preferences.selected_providers.contains(&provider.id);
+        }
+    }
+
+    fn persist_preferences(&self) -> Result<(), CommandError> {
+        let Some(path) = &self.preferences_path else {
+            return Ok(());
+        };
+
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent).map_err(|e| {
+                CommandError::internal(format!("Failed to create preferences directory: {}", e))
+            })?;
+        }
+
+        let preferences = ProviderPreferences {
+            selected_providers: self
+                .providers
+                .iter()
+                .filter(|provider| provider.is_selected)
+                .map(|provider| provider.id)
+                .collect(),
+        };
+
+        let contents = serde_json::to_string(&preferences).map_err(|e| {
+            CommandError::internal(format!("Failed to serialize provider preferences: {}", e))
+        })?;
+
+        fs::write(path, contents).map_err(|e| {
+            CommandError::internal(format!("Failed to write provider preferences: {}", e))
+        })
     }
 
     /// Returns all providers
@@ -85,7 +167,9 @@ impl ProviderManager {
             })?;
 
         provider.is_selected = is_selected;
-        Ok(provider.clone())
+        let provider = provider.clone();
+        self.persist_preferences()?;
+        Ok(provider)
     }
 
     /// Returns the number of currently selected providers

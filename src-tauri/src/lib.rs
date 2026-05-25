@@ -1,4 +1,5 @@
-use log::{error, info};
+use log::{error, info, warn};
+use tauri::Manager;
 
 // Module declarations
 pub mod commands;
@@ -23,7 +24,18 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .manage(AppState::new()) // Register shared application state
+        .setup(|app| {
+            let provider_preferences_path = match app.path().app_config_dir() {
+                Ok(config_dir) => Some(config_dir.join("provider-preferences.json")),
+                Err(e) => {
+                    warn!("Failed to resolve app config directory: {}", e);
+                    None
+                }
+            };
+
+            app.manage(AppState::new(provider_preferences_path));
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             commands::get_providers,
             commands::update_provider_selection,

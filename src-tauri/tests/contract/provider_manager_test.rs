@@ -3,6 +3,7 @@
 
 use chenchen_lib::providers::manager::ProviderManager;
 use chenchen_lib::types::ProviderId;
+use std::fs;
 
 #[test]
 fn test_new_returns_six_providers() {
@@ -106,7 +107,10 @@ fn test_update_selection_validates_maximum_three_selected() {
     // Two providers are selected by default; selecting Claude reaches the max of 3.
     let providers = manager.get_all_providers();
     let selected_count = providers.iter().filter(|p| p.is_selected).count();
-    assert_eq!(selected_count, 2, "ChatGPT and Gemini should start selected");
+    assert_eq!(
+        selected_count, 2,
+        "ChatGPT and Gemini should start selected"
+    );
 
     manager
         .update_provider_selection(ProviderId::Claude, true)
@@ -114,7 +118,10 @@ fn test_update_selection_validates_maximum_three_selected() {
 
     let providers = manager.get_all_providers();
     let selected_count = providers.iter().filter(|p| p.is_selected).count();
-    assert_eq!(selected_count, 3, "Should have 3 selected after selecting Claude");
+    assert_eq!(
+        selected_count, 3,
+        "Should have 3 selected after selecting Claude"
+    );
 
     let result = manager.update_provider_selection(ProviderId::Perplexity, true);
     assert!(
@@ -191,7 +198,53 @@ fn test_get_selected_providers() {
         .expect("Should deselect ChatGPT");
 
     let selected = manager.get_selected_providers();
-    assert_eq!(selected.len(), 1, "Should have 1 selected provider after deselecting one");
+    assert_eq!(
+        selected.len(),
+        1,
+        "Should have 1 selected provider after deselecting one"
+    );
     assert!(selected.iter().any(|p| p.id == ProviderId::Gemini));
     assert!(!selected.iter().any(|p| p.id == ProviderId::ChatGPT));
+}
+
+#[test]
+fn test_loads_saved_provider_selection_from_preferences_file() {
+    let temp_dir = tempfile::tempdir().expect("Should create temp dir");
+    let preferences_path = temp_dir.path().join("provider-preferences.json");
+    fs::write(
+        &preferences_path,
+        r#"{"selected_providers":["Claude","Ollama"]}"#,
+    )
+    .expect("Should write preferences file");
+
+    let manager = ProviderManager::with_preferences_path(preferences_path);
+    let selected: Vec<ProviderId> = manager
+        .get_selected_providers()
+        .iter()
+        .map(|provider| provider.id)
+        .collect();
+
+    assert_eq!(selected, vec![ProviderId::Claude, ProviderId::Ollama]);
+}
+
+#[test]
+fn test_update_provider_selection_persists_preferences_file() {
+    let temp_dir = tempfile::tempdir().expect("Should create temp dir");
+    let preferences_path = temp_dir
+        .path()
+        .join("nested")
+        .join("provider-preferences.json");
+    let mut manager = ProviderManager::with_preferences_path(preferences_path.clone());
+
+    manager
+        .update_provider_selection(ProviderId::Claude, true)
+        .expect("Should allow selecting Claude as the third provider");
+
+    let saved_preferences =
+        fs::read_to_string(preferences_path).expect("Should write preferences file");
+
+    assert_eq!(
+        saved_preferences,
+        r#"{"selected_providers":["ChatGPT","Gemini","Claude"]}"#
+    );
 }
