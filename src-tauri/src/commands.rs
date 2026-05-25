@@ -10,6 +10,9 @@ use crate::{log_error, log_info};
 use log::{error, info};
 use tauri::State;
 
+#[cfg(target_os = "macos")]
+const MACOS_TITLEBAR_FALLBACK_OFFSET: f64 = 28.0;
+
 fn adjust_child_webview_bounds_for_window_chrome(
     x: f64,
     y: f64,
@@ -29,7 +32,7 @@ fn adjust_child_webview_bounds_for_window_chrome(
 
     #[cfg(target_os = "macos")]
     if apply_native_chrome_offset && chrome_top_offset == 0.0 && outer_height >= inner_height {
-        chrome_top_offset = 53.0;
+        chrome_top_offset = MACOS_TITLEBAR_FALLBACK_OFFSET;
     }
 
     let adjusted_height = (height - chrome_top_offset).max(1.0);
@@ -413,7 +416,7 @@ mod tests {
             12.0, 34.0, 500.0, 600.0, 900, 900, 1.0, true,
         );
 
-        assert_eq!(bounds, (12.0, 87.0, 500.0, 547.0));
+        assert_eq!(bounds, (12.0, 62.0, 500.0, 572.0));
     }
 
     #[test]
