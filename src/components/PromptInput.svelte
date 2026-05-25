@@ -9,6 +9,7 @@
   let error = $state<string | null>(null);
   let currentPlaceholderIndex = $state(0);
   let isVanishing = $state(false);
+  let textareaElement = $state<HTMLTextAreaElement | null>(null);
 
   // Cycling placeholders for modern effect
   const placeholders = [
@@ -29,27 +30,35 @@
   onMount(() => {
     const interval = setInterval(() => {
       currentPlaceholderIndex = (currentPlaceholderIndex + 1) % placeholders.length;
-    }, 3000);
+    }, 3500);
 
     return () => clearInterval(interval);
   });
 
-  // T118: Handle prompt submission
+  // Auto-resize textarea heights
+  $effect(() => {
+    if (textareaElement) {
+      // Force heights to recalculate
+      textareaElement.style.height = 'auto';
+      // Set scrollHeight with padding offset
+      const newHeight = Math.min(220, Math.max(48, textareaElement.scrollHeight));
+      textareaElement.style.height = `${newHeight}px`;
+    }
+  });
+
+  // Handle prompt submission
   async function handleSubmit() {
     error = null;
 
-    // T117: Validate non-empty prompt
     if (!prompt.trim()) {
       error = 'Please enter a prompt';
       return;
     }
 
-    // Trigger vanish animation
     isVanishing = true;
     loading = true;
 
     try {
-      // T118: Call submit_prompt command
       const submissions = await tauri.submitPrompt(prompt);
 
       // Notify parent component with submissions
@@ -59,9 +68,11 @@
       setTimeout(() => {
         prompt = '';
         isVanishing = false;
+        if (textareaElement) {
+          textareaElement.style.height = '48px';
+        }
       }, 300);
     } catch (e) {
-      // T119: Display validation error
       error = e instanceof Error ? e.message : 'Failed to submit prompt';
       isVanishing = false;
     } finally {
@@ -69,7 +80,7 @@
     }
   }
 
-  // Handle Enter key (with Shift for newline)
+  // Handle keydown for submission (Enter submits, Shift+Enter newlines)
   function handleKeydown(event: KeyboardEvent) {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
@@ -79,40 +90,58 @@
 </script>
 
 <div class="prompt-container">
-  <div class="input-wrapper" class:vanishing={isVanishing}>
-    <input
-      type="text"
+  <div class="input-wrapper-glow"></div>
+  <div class="input-wrapper glass" class:vanishing={isVanishing}>
+    <!-- Text area for multiline prompt support -->
+    <textarea
+      bind:this={textareaElement}
       bind:value={prompt}
       onkeydown={handleKeydown}
       placeholder={placeholders[currentPlaceholderIndex]}
       disabled={loading}
       data-testid="prompt-textarea"
       class:has-value={prompt.length > 0}
-    />
+      rows="1"
+      aria-label="Prompt inputs"
+    ></textarea>
 
-    <button
-      onclick={handleSubmit}
-      disabled={loading || !prompt.trim()}
-      data-testid="submit-button"
-      class="submit-button"
-      aria-label="Submit prompt"
-    >
-      {#if loading}
-        <svg class="spinner" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-      {:else}
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      {/if}
-    </button>
+    <!-- UI feedback panel with helper information -->
+    <div class="input-controls">
+      <span class="hotkey-tip" class:visible={prompt.trim().length > 0}>
+        <span>Shift + Enter for newline</span>
+        <span class="badge secondary">⌘ ↵</span>
+      </span>
+
+      <!-- Glassmorphic Submit button -->
+      <button
+        onclick={handleSubmit}
+        disabled={loading || !prompt.trim()}
+        data-testid="submit-button"
+        class="submit-button"
+        class:active={prompt.trim().length > 0}
+        aria-label="Submit prompt"
+      >
+        {#if loading}
+          <svg class="spinner-loader" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="32" class="spinner-circle"></circle>
+          </svg>
+        {:else}
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        {/if}
+      </button>
+    </div>
   </div>
 
   {#if error}
-    <div class="error-message">{error}</div>
+    <div class="error-message" role="alert">
+      <svg class="error-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 9V14M12 17.01H12.01M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>{error}</span>
+    </div>
   {/if}
 </div>
 
@@ -122,98 +151,164 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    max-width: 800px;
+    max-width: 850px;
     margin: 0 auto;
     width: 100%;
   }
 
+  /* Focused ambient light effect */
+  .input-wrapper-glow {
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    border-radius: var(--radius-lg);
+    opacity: 0;
+    filter: blur(12px);
+    transition: opacity var(--transition-normal);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .prompt-container:focus-within .input-wrapper-glow {
+    opacity: 0.18;
+  }
+
+  /* Main Command Box */
   .input-wrapper {
     position: relative;
     display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem 0.5rem 0.5rem 1.25rem;
-    background: rgba(30, 30, 30, 0.6);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 9999px; /* Pill shape */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-direction: column;
+    padding: 0.65rem 0.75rem 0.65rem 1.25rem;
+    border-radius: var(--radius-lg);
+    background: hsla(220, 15%, 8%, 0.75);
+    border: 1px solid hsla(220, 20%, 100%, 0.06);
+    box-shadow: var(--shadow-lg), 0 10px 30px rgba(0, 0, 0, 0.4);
+    transition: all var(--transition-normal);
+    z-index: 1;
   }
 
   .input-wrapper:focus-within {
-    background: rgba(40, 40, 40, 0.8);
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(59, 130, 246, 0.3);
+    background: hsla(220, 15%, 11%, 0.9);
+    border-color: hsla(220, 95%, 60%, 0.35);
+    box-shadow: var(--shadow-lg), 0 15px 40px rgba(0, 0, 0, 0.5), 0 0 10px hsla(220, 95%, 60%, 0.1);
     transform: translateY(-2px);
   }
 
   .input-wrapper.vanishing {
     opacity: 0;
-    transform: translateY(20px) scale(0.95);
-    filter: blur(10px);
+    transform: translateY(20px) scale(0.96);
+    filter: blur(12px);
   }
 
-  input {
+  /* Auto-expanding Textarea */
+  textarea {
     flex: 1;
-    padding: 0.75rem 0;
-    font-family: 'Inter', sans-serif;
-    font-size: 1rem;
+    padding: 0.4rem 0.5rem 0.4rem 0;
+    font-family: var(--font-family);
+    font-size: 0.98rem;
     background: transparent;
     border: none;
-    color: #ffffff;
-    transition: all 0.3s ease;
-    min-width: 0; /* Prevent flex overflow */
-  }
-
-  input::placeholder {
-    color: rgba(255, 255, 255, 0.4);
-    transition: color 0.3s ease, opacity 0.3s ease;
-  }
-
-  input:focus {
+    color: var(--text-primary);
+    line-height: 1.5;
+    resize: none;
+    min-height: 48px;
+    height: 48px;
+    max-height: 220px;
     outline: none;
     box-shadow: none;
+    transition: color 0.2s ease;
+  }
+
+  textarea::placeholder {
+    color: var(--text-tertiary);
+    font-weight: 400;
+  }
+
+  textarea:focus {
+    box-shadow: none;
     border: none;
+    background: transparent;
   }
 
-  input:focus::placeholder {
-    color: rgba(255, 255, 255, 0.3);
-  }
-
-  input:disabled {
+  textarea:disabled {
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.5;
   }
 
+  /* Controls Panel inside input */
+  .input-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.5rem;
+    border-top: 1px solid hsla(220, 20%, 100%, 0.03);
+    margin-top: 0.25rem;
+  }
+
+  .hotkey-tip {
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    opacity: 0;
+    transform: translateX(-5px);
+    transition: all var(--transition-normal);
+    pointer-events: none;
+  }
+
+  .hotkey-tip.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .hotkey-tip .badge {
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.65rem;
+  }
+
+  /* Submit Action Button */
   .submit-button {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
+    width: 38px;
+    height: 38px;
     padding: 0;
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    border: none;
+    background: hsla(220, 15%, 15%, 0.8);
+    border: 1px solid var(--border-highlight);
     border-radius: 50%;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: all var(--transition-spring);
     flex-shrink: 0;
-    color: white;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    color: var(--text-secondary);
+    box-shadow: var(--shadow-sm);
+    margin-left: auto;
   }
 
   .submit-button svg {
-    width: 20px;
-    height: 20px;
-    transition: transform 0.3s ease;
+    width: 16px;
+    height: 16px;
+    transition: transform var(--transition-normal);
+  }
+
+  .submit-button.active {
+    background: linear-gradient(135deg, var(--primary-color) 0%, hsl(220, 90%, 50%) 100%);
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 4px 12px var(--primary-glow);
   }
 
   .submit-button:hover:not(:disabled) {
-    transform: scale(1.1) rotate(-5deg);
-    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.5);
+    transform: scale(1.1) rotate(-8deg);
+  }
+
+  .submit-button.active:hover {
+    box-shadow: 0 6px 16px hsla(220, 95%, 60%, 0.45);
   }
 
   .submit-button:active:not(:disabled) {
@@ -221,60 +316,65 @@
   }
 
   .submit-button:disabled {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.3);
+    background: hsla(220, 15%, 12%, 0.4);
+    color: var(--text-tertiary);
     cursor: not-allowed;
     box-shadow: none;
     transform: none;
+    border-color: transparent;
   }
 
-  .spinner {
-    animation: spin 1s linear infinite;
+  /* Custom Spinner Loader */
+  .spinner-loader {
+    width: 18px;
+    height: 18px;
+    animation: spin-pulsing 1.2s linear infinite;
   }
 
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
+  .spinner-circle {
+    stroke-dasharray: 48;
+    stroke-dashoffset: 24;
+    stroke-linecap: round;
+    color: white;
   }
 
+  /* Popover styled error overlay */
   .error-message {
     position: absolute;
-    bottom: 100%;
-    left: 1.5rem;
-    margin-bottom: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: rgba(239, 68, 68, 0.9);
-    backdrop-filter: blur(8px);
-    border-radius: 8px;
+    bottom: calc(100% + 12px);
+    left: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.1rem;
+    background: hsla(355, 80%, 20%, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsla(355, 85%, 55%, 0.25);
+    border-radius: var(--radius-md);
     font-size: 0.85rem;
-    color: white;
-    animation: error-slide 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    pointer-events: none;
+    color: hsl(355, 95%, 85%);
+    animation: error-slide 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    box-shadow: var(--shadow-lg), 0 5px 15px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
   }
 
-  .error-message::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 1rem;
-    border-width: 6px;
-    border-style: solid;
-    border-color: rgba(239, 68, 68, 0.9) transparent transparent transparent;
+  .error-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--error-color);
+    flex-shrink: 0;
   }
 
   @keyframes error-slide {
     from {
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(12px) scale(0.96);
+      filter: blur(4px);
     }
     to {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateY(0) scale(1);
+      filter: blur(0);
     }
   }
 </style>

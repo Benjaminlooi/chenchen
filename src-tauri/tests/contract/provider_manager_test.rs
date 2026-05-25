@@ -52,13 +52,10 @@ fn test_get_all_providers_returns_correct_data() {
             "Provider name should not be empty"
         );
         assert!(!provider.url.is_empty(), "Provider URL should not be empty");
-        if matches!(
-            provider.id,
-            ProviderId::ChatGPT | ProviderId::Gemini | ProviderId::Claude
-        ) {
+        if matches!(provider.id, ProviderId::ChatGPT | ProviderId::Gemini) {
             assert!(
                 provider.is_selected,
-                "Legacy providers should be selected by default"
+                "ChatGPT and Gemini should be selected by default"
             );
         } else {
             assert!(
@@ -78,17 +75,13 @@ fn test_update_selection_validates_minimum_one_selected() {
     // T024: ProviderManager::update_selection() validates minimum 1 selected
     let mut manager = ProviderManager::new();
 
-    // All 3 providers start selected by default
-    // Deselect two of them first
+    // ChatGPT and Gemini start selected by default.
     manager
         .update_provider_selection(ProviderId::ChatGPT, false)
         .expect("Should allow deselecting first provider");
-    manager
-        .update_provider_selection(ProviderId::Gemini, false)
-        .expect("Should allow deselecting second provider");
 
     // Try to deselect the last selected provider (should fail)
-    let result = manager.update_provider_selection(ProviderId::Claude, false);
+    let result = manager.update_provider_selection(ProviderId::Gemini, false);
 
     assert!(
         result.is_err(),
@@ -110,28 +103,28 @@ fn test_update_selection_validates_maximum_three_selected() {
     // T025: ProviderManager::update_selection() validates maximum 3 selected
     let mut manager = ProviderManager::new();
 
-    // All three providers are already selected by default
+    // Two providers are selected by default; selecting Claude reaches the max of 3.
     let providers = manager.get_all_providers();
     let selected_count = providers.iter().filter(|p| p.is_selected).count();
-    assert_eq!(selected_count, 3, "All 3 providers should start selected");
+    assert_eq!(selected_count, 2, "ChatGPT and Gemini should start selected");
 
-    // Verify we can toggle and re-select without exceeding 3
     manager
-        .update_provider_selection(ProviderId::ChatGPT, false)
-        .expect("Should allow deselecting");
+        .update_provider_selection(ProviderId::Claude, true)
+        .expect("Should allow selecting Claude as the third provider");
 
     let providers = manager.get_all_providers();
     let selected_count = providers.iter().filter(|p| p.is_selected).count();
-    assert_eq!(selected_count, 2, "Should have 2 selected after deselecting one");
+    assert_eq!(selected_count, 3, "Should have 3 selected after selecting Claude");
 
-    // Re-select to get back to 3
-    manager
-        .update_provider_selection(ProviderId::ChatGPT, true)
-        .expect("Should allow re-selecting to get back to 3");
+    let result = manager.update_provider_selection(ProviderId::Perplexity, true);
+    assert!(
+        result.is_err(),
+        "Should not allow selecting a fourth provider"
+    );
 
     let providers = manager.get_all_providers();
     let selected_count = providers.iter().filter(|p| p.is_selected).count();
-    assert_eq!(selected_count, 3, "Should have all 3 selected again");
+    assert_eq!(selected_count, 3, "Should still have only 3 selected");
 }
 
 #[test]
@@ -139,7 +132,7 @@ fn test_update_selection_allows_toggling() {
     // Additional test: Verify toggling selection works correctly
     let mut manager = ProviderManager::new();
 
-    // All 3 providers start selected by default
+    // ChatGPT and Gemini start selected by default.
     let providers = manager.get_all_providers();
     let chatgpt = providers
         .iter()
@@ -184,12 +177,12 @@ fn test_get_selected_providers() {
     // Test the get_selected_providers helper method
     let mut manager = ProviderManager::new();
 
-    // All 3 providers start selected by default
+    // ChatGPT and Gemini start selected by default.
     let selected = manager.get_selected_providers();
     assert_eq!(
         selected.len(),
-        3,
-        "Should have all 3 providers selected initially"
+        2,
+        "Should have ChatGPT and Gemini selected initially"
     );
 
     // Deselect ChatGPT
@@ -198,8 +191,7 @@ fn test_get_selected_providers() {
         .expect("Should deselect ChatGPT");
 
     let selected = manager.get_selected_providers();
-    assert_eq!(selected.len(), 2, "Should have 2 selected providers after deselecting one");
+    assert_eq!(selected.len(), 1, "Should have 1 selected provider after deselecting one");
     assert!(selected.iter().any(|p| p.id == ProviderId::Gemini));
-    assert!(selected.iter().any(|p| p.id == ProviderId::Claude));
     assert!(!selected.iter().any(|p| p.id == ProviderId::ChatGPT));
 }

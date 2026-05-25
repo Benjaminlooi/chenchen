@@ -48,7 +48,7 @@
     "Claude": {
       "provider_id": "Claude",
       "config_version": "1.0.0",
-      "is_selected": true,
+      "is_selected": false,
       "input_selectors": [
         "div[contenteditable='true'][translate='no']",
         ".ProseMirror[contenteditable='true']",
