@@ -49,7 +49,7 @@ class TauriService {
    */
   async getSubmissionStatus(submissionId: string): Promise<Submission> {
     return tauriInvoke<Submission>('get_submission_status', {
-      submission_id: submissionId,
+      submissionId,
     });
   }
 }

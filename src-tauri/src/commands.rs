@@ -10,6 +10,33 @@ use crate::{log_error, log_info};
 use log::{error, info};
 use tauri::State;
 
+fn adjust_child_webview_bounds_for_window_chrome(
+    x: f64,
+    y: f64,
+    width: f64,
+    height: f64,
+    outer_height: u32,
+    inner_height: u32,
+    scale_factor: f64,
+    apply_native_chrome_offset: bool,
+) -> (f64, f64, f64, f64) {
+    #[allow(unused_mut)]
+    let mut chrome_top_offset = if apply_native_chrome_offset && scale_factor > 0.0 {
+        outer_height.saturating_sub(inner_height) as f64 / scale_factor
+    } else {
+        0.0
+    };
+
+    #[cfg(target_os = "macos")]
+    if apply_native_chrome_offset && chrome_top_offset == 0.0 && outer_height >= inner_height {
+        chrome_top_offset = 53.0;
+    }
+
+    let adjusted_height = (height - chrome_top_offset).max(1.0);
+
+    (x, y + chrome_top_offset, width, adjusted_height)
+}
+
 /// Gets all available providers
 /// Returns the list of all 3 providers with their current state
 #[tauri::command]
@@ -262,7 +289,7 @@ pub async fn sync_provider_webview(
     width: f64,
     height: f64,
 ) -> Result<(), CommandError> {
-    use tauri::{Manager, WebviewUrl, WebviewBuilder};
+    use tauri::{Manager, WebviewBuilder, WebviewUrl};
     use tauri::{Position, Rect, Size};
 
     let label = format!("{}-webview", provider_id.as_str().to_lowercase());
@@ -275,8 +302,35 @@ pub async fn sync_provider_webview(
     });
 
     // Get the main window to use as parent (bare Window, not WebviewWindow)
-    let main_window = app.get_window("main")
+    let main_window = app
+        .get_window("main")
         .ok_or_else(|| CommandError::internal("Main window not found"))?;
+
+    let outer_size = main_window
+        .outer_size()
+        .map_err(|e| CommandError::internal(format!("Failed to get outer window size: {}", e)))?;
+    let inner_size = main_window
+        .inner_size()
+        .map_err(|e| CommandError::internal(format!("Failed to get inner window size: {}", e)))?;
+    let scale_factor = main_window
+        .scale_factor()
+        .map_err(|e| CommandError::internal(format!("Failed to get window scale factor: {}", e)))?;
+
+    log_info!("Window size details for webview positioning", {
+        "outer_height": outer_size.height,
+        "inner_height": inner_size.height,
+        "scale_factor": scale_factor
+    });
+    let (x, y, width, height) = adjust_child_webview_bounds_for_window_chrome(
+        x,
+        y,
+        width,
+        height,
+        outer_size.height,
+        inner_size.height,
+        scale_factor,
+        cfg!(target_os = "macos"),
+    );
 
     // Check if webview already exists
     if let Some(webview) = app.get_webview(&label) {
@@ -286,18 +340,21 @@ pub async fn sync_provider_webview(
             size: Size::Logical(tauri::LogicalSize { width, height }),
         };
 
-        webview.set_bounds(bounds)
+        webview
+            .set_bounds(bounds)
             .map_err(|e| CommandError::internal(format!("Failed to set bounds: {}", e)))?;
 
         log_info!("Updated existing webview bounds", {
-            "label": &label
+            "label": &label,
+            "adjusted_position": format!("({}, {})", x, y),
+            "adjusted_size": format!("{}x{}", width, height)
         });
     } else {
         // Create new child webview attached to main window
         // T155: Set User Agent to fix Gemini icons on Linux
         // T160: Inject stealth script to prevent bot detection
         let stealth_script = crate::injection::injector::Injector::get_stealth_script();
-        
+
         // T161: Platform-specific User-Agent corresponding to the stealth script
         #[cfg(target_os = "macos")]
         let webview_builder = WebviewBuilder::new(&label, WebviewUrl::External(url.parse().unwrap()))
@@ -312,24 +369,88 @@ pub async fn sync_provider_webview(
         let position = tauri::LogicalPosition { x, y };
         let size = tauri::LogicalSize { width, height };
 
-        let _webview = main_window.add_child(
-            webview_builder,
-            Position::Logical(position),
-            Size::Logical(size)
-        ).map_err(|e| {
-            log_error!("Failed to create child webview", {
-                "label": &label,
-                "error": e.to_string()
-            });
-            CommandError::internal(format!("Failed to create child webview: {}", e))
-        })?;
+        let _webview = main_window
+            .add_child(
+                webview_builder,
+                Position::Logical(position),
+                Size::Logical(size),
+            )
+            .map_err(|e| {
+                log_error!("Failed to create child webview", {
+                    "label": &label,
+                    "error": e.to_string()
+                });
+                CommandError::internal(format!("Failed to create child webview: {}", e))
+            })?;
 
         log_info!("Created new child webview", {
-            "label": &label
+            "label": &label,
+            "adjusted_position": format!("({}, {})", x, y),
+            "adjusted_size": format!("{}x{}", width, height)
         });
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::adjust_child_webview_bounds_for_window_chrome;
+
+    #[test]
+    fn leaves_bounds_unchanged_without_native_chrome() {
+        let bounds = adjust_child_webview_bounds_for_window_chrome(
+            12.0, 34.0, 500.0, 600.0, 900, 900, 1.0, false,
+        );
+
+        assert_eq!(bounds, (12.0, 34.0, 500.0, 600.0));
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn applies_macos_titlebar_fallback_when_window_sizes_match() {
+        let bounds = adjust_child_webview_bounds_for_window_chrome(
+            12.0, 34.0, 500.0, 600.0, 900, 900, 1.0, true,
+        );
+
+        assert_eq!(bounds, (12.0, 87.0, 500.0, 547.0));
+    }
+
+    #[test]
+    fn keeps_child_webview_y_aligned_to_content_rect() {
+        let bounds = adjust_child_webview_bounds_for_window_chrome(
+            12.0, 34.0, 500.0, 600.0, 1800, 1712, 2.0, true,
+        );
+
+        assert_eq!(bounds, (12.0, 78.0, 500.0, 556.0));
+    }
+
+    #[test]
+    fn leaves_bounds_unchanged_when_native_chrome_offset_is_disabled() {
+        let bounds = adjust_child_webview_bounds_for_window_chrome(
+            12.0, 34.0, 500.0, 600.0, 1800, 1712, 2.0, false,
+        );
+
+        assert_eq!(bounds, (12.0, 34.0, 500.0, 600.0));
+    }
+
+    #[test]
+    fn does_not_underflow_when_inner_size_exceeds_outer_size() {
+        let bounds = adjust_child_webview_bounds_for_window_chrome(
+            12.0, 34.0, 500.0, 600.0, 890, 900, 1.0, true,
+        );
+
+        assert_eq!(bounds, (12.0, 34.0, 500.0, 600.0));
+    }
+
+    #[test]
+    fn clamps_height_when_native_chrome_offset_exceeds_target_height() {
+        let bounds = adjust_child_webview_bounds_for_window_chrome(
+            12.0, 34.0, 500.0, 20.0, 1800, 1712, 2.0, true,
+        );
+
+        assert_eq!(bounds, (12.0, 78.0, 500.0, 1.0));
+    }
 }
 
 /// Disposes an existing provider webview when it is no longer needed
@@ -447,7 +568,9 @@ pub fn report_execution_result(
         state.status_tracker.fail_submission(
             &payload.submission_id,
             error_type,
-            payload.error_message.unwrap_or_else(|| "Execution failed".to_string()),
+            payload
+                .error_message
+                .unwrap_or_else(|| "Execution failed".to_string()),
         )?;
 
         log_info!("Marked submission as failed", {

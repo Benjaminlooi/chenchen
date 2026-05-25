@@ -3,9 +3,10 @@
   import ProviderSelector from '../components/ProviderSelector.svelte';
   import ProviderPanel from '../components/ProviderPanel.svelte';
   import PromptInput from '../components/PromptInput.svelte';
+  import StatusDisplay from '../components/StatusDisplay.svelte';
   import { tauri } from '../services/tauri';
   import { syncProviderWebviews, type PanelBounds } from '../services/providerWebviews';
-  import type { LayoutConfiguration, Provider, Submission } from '../types';
+  import { type LayoutConfiguration, type Provider, type Submission, SubmissionStatus } from '../types';
   import '../app.css'; // Import global styles
 
   // TEMPORARY: Disable webviews for design work
@@ -15,8 +16,11 @@
   let layout = $state<LayoutConfiguration | null>(null);
   let providers = $state<Provider[]>([]);
   let layoutContainerElement = $state<HTMLElement | null>(null);
-  let bottomBarElement = $state<HTMLElement | null>(null);
   let layoutError = $state<string | null>(null);
+  
+  // Submission real-time status HUD states
+  let activeSubmissions = $state<Submission[]>([]);
+  let pollingTimer = $state<ReturnType<typeof setTimeout> | null>(null);
 
   // Debounce timers for performance optimization (T152)
   let resizeDebounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -41,6 +45,9 @@
       window.removeEventListener('providers-changed', handleProvidersChanged as EventListener);
       window.removeEventListener('resize', handleResize);
       cleanupPanelResizeObserver();
+      if (pollingTimer) {
+        clearTimeout(pollingTimer);
+      }
     };
   });
 
@@ -91,7 +98,7 @@
     resizeDebounceTimer = setTimeout(() => {
       scheduleWebviewPositionSync();
       resizeDebounceTimer = null;
-    }, 100); // 100ms debounce delay - reduced for smoother resizing
+    }, 16); // Snappy 16ms frame-level debounce delay
   }
 
   function scheduleWebviewPositionSync() {
@@ -120,14 +127,13 @@
 
     if (!resizeObserver) {
       resizeObserver = new ResizeObserver(() => {
-        // Debounce ResizeObserver to avoid firing during CSS transitions
         if (resizeObserverDebounceTimer) {
           clearTimeout(resizeObserverDebounceTimer);
         }
         resizeObserverDebounceTimer = setTimeout(() => {
           scheduleWebviewPositionSync();
           resizeObserverDebounceTimer = null;
-        }, 150); // 150ms debounce - wait for CSS transitions to complete
+        }, 16);
       });
     }
 
@@ -219,8 +225,66 @@
 
   // T124: Handle prompt submission
   async function handlePromptSubmitted(event: CustomEvent<{ submissions: Submission[] }>) {
-    // TODO: Handle submission status updates when event system is implemented
     console.log('Prompt submitted:', event.detail.submissions);
+    activeSubmissions = event.detail.submissions;
+    startStatusPollingLoop();
+  }
+
+  // Poll Tauri command for live submission updates
+  function startStatusPollingLoop() {
+    if (pollingTimer) {
+      clearTimeout(pollingTimer);
+      pollingTimer = null;
+    }
+
+    const poll = async () => {
+      const inProgress = activeSubmissions.some(
+        (s) =>
+          s.status === SubmissionStatus.Pending ||
+          s.status === SubmissionStatus.InProgress ||
+          s.status === SubmissionStatus.Retrying
+      );
+
+      if (!inProgress) {
+        console.log('[Status Polling] All active LLMs reached terminal states. Stopping loop.');
+        return;
+      }
+
+      try {
+        const updated = await Promise.all(
+          activeSubmissions.map(async (submission) => {
+            if (
+              submission.status === SubmissionStatus.Success ||
+              submission.status === SubmissionStatus.Failed
+            ) {
+              return submission;
+            }
+            try {
+              return await tauri.getSubmissionStatus(submission.id);
+            } catch (err) {
+              console.error(`[Status Polling] Failed status fetch for ${submission.provider_id}:`, err);
+              return submission;
+            }
+          })
+        );
+        activeSubmissions = updated;
+      } catch (err) {
+        console.error('[Status Polling] Batch polling failed:', err);
+      }
+
+      pollingTimer = setTimeout(poll, 500);
+    };
+
+    pollingTimer = setTimeout(poll, 500);
+  }
+
+  // Dismiss status HUD overlay console
+  function handleCloseStatusHUD() {
+    activeSubmissions = [];
+    if (pollingTimer) {
+      clearTimeout(pollingTimer);
+      pollingTimer = null;
+    }
   }
 
   // Convert percentage-based PanelDimensions to pixel-based PanelBounds
@@ -269,10 +333,6 @@
 
         return {
           providerId: dimension.provider_id,
-          // x: Math.floor(contentRect.left),
-          // y: Math.floor(contentRect.top),
-          // width: (Math.ceil(contentRect.right) - Math.floor(contentRect.left)),
-          // height: (Math.ceil(contentRect.bottom) - Math.floor(contentRect.top)),
           x: contentRect.x,
           y: contentRect.y,
           width: contentRect.width,
@@ -296,30 +356,56 @@
       cleanupPanelResizeObserver();
     }
   });
+
+  // Re-sync webview bounds whenever submissions HUD state changes (open / closed / updated)
+  $effect(() => {
+    const submissionsCount = activeSubmissions.length;
+    tick().then(() => {
+      scheduleWebviewPositionSync();
+    });
+  });
 </script>
 
-<main class="container">
-  <!-- Provider panels in split-screen layout -->
-  {#if layout && layout.panel_dimensions.length > 0}
-    <div class="layout-container" bind:this={layoutContainerElement}>
-      {#each layout.panel_dimensions as dimension (dimension.provider_id)}
-        <ProviderPanel
-          {dimension}
-          providerName={getProviderName(dimension.provider_id)}
-        />
-      {/each}
-    </div>
-  {:else}
-    <div class="layout-placeholder">
-      Select LLMs below to view responses side-by-side
-    </div>
-  {/if}
+<main class="app-shell">
+  <section class="webview-workspace" aria-label="LLM webviews">
+    {#if layout && layout.panel_dimensions.length > 0}
+      <div class="layout-container" bind:this={layoutContainerElement}>
+        {#each layout.panel_dimensions as dimension (dimension.provider_id)}
+          <ProviderPanel
+            {dimension}
+            providerName={getProviderName(dimension.provider_id)}
+          />
+        {/each}
+      </div>
+    {:else}
+      <div class="layout-placeholder">
+        Select LLMs to view responses side-by-side
+      </div>
+    {/if}
+  </section>
 
-  <div class="bottom-bar" bind:this={bottomBarElement}>
-    <ProviderSelector />
-    <div class="divider"></div>
-    <PromptInput onsubmitted={handlePromptSubmitted} />
-  </div>
+  <aside class="control-console glass-strong" aria-label="Controls">
+    <div class="console-section provider-section">
+      <div class="section-label">Providers</div>
+      <ProviderSelector />
+    </div>
+
+    <div class="console-section prompt-section">
+      <div class="section-label">Prompt</div>
+      <PromptInput onsubmitted={handlePromptSubmitted} />
+    </div>
+
+    <div class="console-section status-section">
+      <div class="section-label">Status</div>
+      {#if activeSubmissions.length > 0}
+        <StatusDisplay submissions={activeSubmissions} onClose={handleCloseStatusHUD} />
+      {:else}
+        <div class="status-empty">
+          Submit a prompt to track delivery.
+        </div>
+      {/if}
+    </div>
+  </aside>
 </main>
 
 <style>
@@ -335,10 +421,12 @@
     overflow: hidden; /* Prevent scrollbars on body */
   }
 
-  .container {
-    display: flex;
-    flex-direction: column;
+  .app-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 384px;
+    gap: 16px;
     height: 100vh;
+    padding: 16px;
     overflow: hidden;
     background: radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.08), transparent 25%),
                 radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 25%);
@@ -357,7 +445,7 @@
   }
 
   /* Mesh gradient background effect */
-  .container::before {
+  .app-shell::before {
     content: '';
     position: absolute;
     top: 0;
@@ -369,29 +457,20 @@
     z-index: 0;
   }
 
-  .bottom-bar {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    padding: 1.5rem 2rem 2rem;
-    background: linear-gradient(to top, rgba(10, 10, 10, 0.95) 0%, rgba(10, 10, 10, 0.8) 60%, transparent 100%);
-    flex-shrink: 0;
+  .webview-workspace {
     position: relative;
-    z-index: 1000;
-  }
-
-  .divider {
-    width: 1px;
-    height: 24px;
-    background: rgba(255, 255, 255, 0.1);
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    z-index: 1;
   }
 
   .layout-container {
     position: relative;
-    flex: 1;
+    width: 100%;
+    height: 100%;
     background: transparent; /* Let container gradient show through */
     overflow: hidden;
-    z-index: 1;
   }
 
   .layout-placeholder {
@@ -403,5 +482,64 @@
     font-size: 1.1rem;
     font-weight: 300;
     letter-spacing: 0.02em;
+  }
+
+  .control-console {
+    position: relative;
+    z-index: 2;
+    min-width: 0;
+    min-height: 0;
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow: visible;
+  }
+
+  .console-section {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .prompt-section {
+    flex: 0 0 auto;
+  }
+
+  .status-section {
+    flex: 1;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .section-label {
+    color: var(--text-tertiary);
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .status-empty {
+    border: 1px dashed var(--border-highlight);
+    border-radius: var(--radius-md);
+    color: var(--text-tertiary);
+    font-size: 0.82rem;
+    padding: 16px;
+    background: hsla(220, 15%, 8%, 0.42);
+  }
+
+  @media (max-width: 960px) {
+    .app-shell {
+      grid-template-columns: 1fr;
+      grid-template-rows: minmax(0, 1fr) minmax(260px, 38vh);
+    }
+
+    .control-console {
+      overflow-y: auto;
+    }
   }
 </style>
