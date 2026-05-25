@@ -18,7 +18,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = ["unstable"] }
+tauri = { version = "2.11.2", features = ["unstable"] }
 tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -32,11 +32,3 @@ schemars = "0.8"
 mockall = "0.13"
 pretty_assertions = "1"
 tempfile = "3"
-
-# Git patches for Linux multiwebview positioning fix
-# See: https://github.com/tauri-apps/tauri/issues/10420
-# [patch.crates-io]
-# tao = { git = "https://github.com/Benjaminlooi/tao.git" }
-# tauri-runtime = { git = "https://github.com/Benjaminlooi/tauri.git" }
-# tauri-runtime-wry = { git = "https://github.com/Benjaminlooi/tauri.git" }
-# tauri-utils = { git = "https://github.com/Benjaminlooi/tauri.git" }

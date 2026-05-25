@@ -5,7 +5,6 @@ release/
 *.rs.bk
 *.rlib
 *.prof*
-Cargo.lock
 
 # Node.js / TypeScript / JavaScript
 node_modules/

@@ -9,23 +9,23 @@ importers:
   .:
     dependencies:
       '@tauri-apps/api':
-        specifier: ^2.10.1
+        specifier: 2.11.0
         version: 2.11.0
       '@tauri-apps/plugin-opener':
-        specifier: ^2.5.3
+        specifier: 2.5.4
         version: 2.5.4
     devDependencies:
       '@sveltejs/adapter-static':
         specifier: ^3.0.6
-        version: 3.0.10(@sveltejs/kit@2.61.0(@sveltejs/vite-plugin-svelte@5.1.1(svelte@5.55.9)(vite@6.4.2))(svelte@5.55.9)(typescript@5.6.3)(vite@6.4.2))
+        version: 3.0.10(@sveltejs/kit@2.61.1(@sveltejs/vite-plugin-svelte@5.1.1(svelte@5.55.9)(vite@6.4.2))(svelte@5.55.9)(typescript@5.6.3)(vite@6.4.2))
       '@sveltejs/kit':
         specifier: ^2.9.0
-        version: 2.61.0(@sveltejs/vite-plugin-svelte@5.1.1(svelte@5.55.9)(vite@6.4.2))(svelte@5.55.9)(typescript@5.6.3)(vite@6.4.2)
+        version: 2.61.1(@sveltejs/vite-plugin-svelte@5.1.1(svelte@5.55.9)(vite@6.4.2))(svelte@5.55.9)(typescript@5.6.3)(vite@6.4.2)
       '@sveltejs/vite-plugin-svelte':
         specifier: ^5.0.0
         version: 5.1.1(svelte@5.55.9)(vite@6.4.2)
       '@tauri-apps/cli':
-        specifier: ^2.10.0
+        specifier: 2.11.2
         version: 2.11.2
       '@testing-library/jest-dom':
         specifier: ^6.9.1
@@ -432,8 +432,8 @@ packages:
     peerDependencies:
       '@sveltejs/kit': ^2.0.0
 
-  '@sveltejs/kit@2.61.0':
-    resolution: {integrity: sha512-beYjgUux5ITbZeL0vn6gipZlsQiXF1/08C/3F+vlbDvthb/CTgYpZsYPdRIi9RxgTwRSkKIvnxyl+ViZlX4q5A==}
+  '@sveltejs/kit@2.61.1':
+    resolution: {integrity: sha512-Ny8s1SR1TyQS2hD2Rvw0XKzU2Nw1eUF52dTb6T2bdcgz7wSC+Nyb5IwjWYlR4b2dvbbR5NJDiQwHg3rnNseghg==}
     engines: {node: '>=18.13'}
     hasBin: true
     peerDependencies:
@@ -1429,11 +1429,11 @@ snapshots:
     dependencies:
       acorn: 8.16.0
 
-  '@sveltejs/adapter-static@3.0.10(@sveltejs/kit@2.61.0(@sveltejs/vite-plugin-svelte@5.1.1(svelte@5.55.9)(vite@6.4.2))(svelte@5.55.9)(typescript@5.6.3)(vite@6.4.2))':
+  '@sveltejs/adapter-static@3.0.10(@sveltejs/kit@2.61.1(@sveltejs/vite-plugin-svelte@5.1.1(svelte@5.55.9)(vite@6.4.2))(svelte@5.55.9)(typescript@5.6.3)(vite@6.4.2))':
     dependencies:
-      '@sveltejs/kit': 2.61.0(@sveltejs/vite-plugin-svelte@5.1.1(svelte@5.55.9)(vite@6.4.2))(svelte@5.55.9)(typescript@5.6.3)(vite@6.4.2)
+      '@sveltejs/kit': 2.61.1(@sveltejs/vite-plugin-svelte@5.1.1(svelte@5.55.9)(vite@6.4.2))(svelte@5.55.9)(typescript@5.6.3)(vite@6.4.2)
 
-  '@sveltejs/kit@2.61.0(@sveltejs/vite-plugin-svelte@5.1.1(svelte@5.55.9)(vite@6.4.2))(svelte@5.55.9)(typescript@5.6.3)(vite@6.4.2)':
+  '@sveltejs/kit@2.61.1(@sveltejs/vite-plugin-svelte@5.1.1(svelte@5.55.9)(vite@6.4.2))(svelte@5.55.9)(typescript@5.6.3)(vite@6.4.2)':
     dependencies:
       '@standard-schema/spec': 1.1.0
       '@sveltejs/acorn-typescript': 1.0.10(acorn@8.16.0)
