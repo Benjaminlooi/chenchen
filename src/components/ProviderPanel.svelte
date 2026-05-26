@@ -118,7 +118,7 @@
   /* Premium Panel Frame */
   .provider-panel {
     position: absolute;
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;

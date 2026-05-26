@@ -297,6 +297,7 @@
     const container = layoutContainerElement; // Store for TypeScript null check
     const MIN_WEBVIEW_HEIGHT = 50; // Minimum reasonable height for a webview
     const MIN_WEBVIEW_WIDTH = 50; // Minimum reasonable width for a webview
+    const WEBVIEW_BOTTOM_BLEED = 3; // Hide fractional gaps between native webviews and panel chrome.
 
     return layout.panel_dimensions
       .map((dimension) => {
@@ -312,6 +313,10 @@
 
         // Get the actual rendered bounds of the content area
         const contentRect = targetElement.getBoundingClientRect();
+        const panelRect = targetElement.closest('[data-provider-id]')?.getBoundingClientRect();
+        const webviewHeight = panelRect
+          ? Math.ceil(panelRect.bottom - contentRect.top + WEBVIEW_BOTTOM_BLEED)
+          : Math.ceil(contentRect.height);
 
         // Filter out invalid bounds (too small - likely from CSS transition intermediate frames)
         if (contentRect.width < MIN_WEBVIEW_WIDTH || contentRect.height < MIN_WEBVIEW_HEIGHT) {
@@ -326,7 +331,7 @@
           x: contentRect.x,
           y: contentRect.y,
           width: contentRect.width,
-          height: contentRect.height,
+          height: webviewHeight,
           windowInnerWidth: window.innerWidth,
           windowInnerHeight: window.innerHeight,
         });
@@ -336,7 +341,7 @@
           x: contentRect.x,
           y: contentRect.y,
           width: contentRect.width,
-          height: contentRect.height,
+          height: webviewHeight,
         };
       })
       .filter((bounds): bounds is PanelBounds => bounds !== null);

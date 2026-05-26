@@ -35,9 +35,7 @@ fn adjust_child_webview_bounds_for_window_chrome(
         chrome_top_offset = MACOS_TITLEBAR_FALLBACK_OFFSET;
     }
 
-    let adjusted_height = (height - chrome_top_offset).max(1.0);
-
-    (x, y + chrome_top_offset, width, adjusted_height)
+    (x, y + chrome_top_offset, width, height)
 }
 
 /// Gets all available providers
@@ -411,21 +409,21 @@ mod tests {
 
     #[cfg(target_os = "macos")]
     #[test]
-    fn applies_macos_titlebar_fallback_when_window_sizes_match() {
+    fn applies_macos_titlebar_fallback_without_shrinking_target_height() {
         let bounds = adjust_child_webview_bounds_for_window_chrome(
             12.0, 34.0, 500.0, 600.0, 900, 900, 1.0, true,
         );
 
-        assert_eq!(bounds, (12.0, 62.0, 500.0, 572.0));
+        assert_eq!(bounds, (12.0, 62.0, 500.0, 600.0));
     }
 
     #[test]
-    fn keeps_child_webview_y_aligned_to_content_rect() {
+    fn offsets_child_webview_y_without_shrinking_target_height() {
         let bounds = adjust_child_webview_bounds_for_window_chrome(
             12.0, 34.0, 500.0, 600.0, 1800, 1712, 2.0, true,
         );
 
-        assert_eq!(bounds, (12.0, 78.0, 500.0, 556.0));
+        assert_eq!(bounds, (12.0, 78.0, 500.0, 600.0));
     }
 
     #[test]
@@ -447,12 +445,12 @@ mod tests {
     }
 
     #[test]
-    fn clamps_height_when_native_chrome_offset_exceeds_target_height() {
+    fn preserves_tiny_target_height_when_native_chrome_offset_exceeds_target_height() {
         let bounds = adjust_child_webview_bounds_for_window_chrome(
             12.0, 34.0, 500.0, 20.0, 1800, 1712, 2.0, true,
         );
 
-        assert_eq!(bounds, (12.0, 78.0, 500.0, 1.0));
+        assert_eq!(bounds, (12.0, 78.0, 500.0, 20.0));
     }
 }
 
