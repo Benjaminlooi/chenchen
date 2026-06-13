@@ -357,14 +357,22 @@ pub async fn sync_provider_webview(
         let stealth_script = crate::injection::injector::Injector::get_stealth_script();
 
         // T161: Platform-specific User-Agent corresponding to the stealth script
-        #[cfg(target_os = "macos")]
-        let webview_builder = WebviewBuilder::new(&label, WebviewUrl::External(url.parse().unwrap()))
-            .user_agent("Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.4 Safari/605.1.15")
-            .initialization_script(stealth_script);
+        let user_agent = {
+            #[cfg(target_os = "macos")]
+            { "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.4 Safari/605.1.15" }
+            #[cfg(target_os = "windows")]
+            { "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" }
+            #[cfg(target_os = "linux")]
+            { "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" }
+            #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
+            { "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" }
+        };
 
-        #[cfg(not(target_os = "macos"))]
-        let webview_builder = WebviewBuilder::new(&label, WebviewUrl::External(url.parse().unwrap()))
-            .user_agent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
+        let parsed_url = url.parse()
+            .map_err(|e| CommandError::internal(format!("Invalid webview URL: {}", e)))?;
+
+        let webview_builder = WebviewBuilder::new(&label, WebviewUrl::External(parsed_url))
+            .user_agent(user_agent)
             .initialization_script(stealth_script);
 
         let position = tauri::LogicalPosition { x, y };
