@@ -1,6 +1,6 @@
 [package]
 name = "chenchen"
-version = "0.5.2"
+version = "0.6.0"
 description = "Multi-LLM Prompt Desktop App"
 authors = ["ChenChen Team"]
 edition = "2021"
