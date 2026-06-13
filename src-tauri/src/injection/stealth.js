@@ -9,8 +9,12 @@
         });
     }
 
-    // 1. Client Hints (Chrome 131 on Linux)
+    // 1. Client Hints (Chrome 131 on Windows/Linux)
     if (!navigator.userAgentData) {
+        const isWindows = (navigator.userAgent || "").includes("Windows NT");
+        const platform = isWindows ? "Windows" : "Linux";
+        const platformVersion = isWindows ? "10.0.0" : "6.5.0";
+
         const userAgentData = {
             brands: [
                 { brand: "Chromium", version: "131" },
@@ -18,7 +22,7 @@
                 { brand: "Not_A Brand", version: "24" }
             ],
             mobile: false,
-            platform: "Linux",
+            platform: platform,
             getHighEntropyValues: function(hints) {
                 return Promise.resolve({
                     architecture: "x86",
@@ -27,7 +31,7 @@
                     mobile: this.mobile,
                     model: "",
                     platform: this.platform,
-                    platformVersion: "6.5.0", // Example Linux kernel version
+                    platformVersion: platformVersion,
                     uaFullVersion: "131.0.6778.85",
                     fullVersionList: [
                         { brand: "Chromium", version: "131.0.6778.85" },
@@ -53,34 +57,6 @@
     if (navigator.hardwareConcurrency === undefined || navigator.hardwareConcurrency === 0) {
         mockReadonly(navigator, 'hardwareConcurrency', 4);
     }
-
-    // 6. Canvas Fingerprinting Noise
-    const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
-    HTMLCanvasElement.prototype.toDataURL = function(type) {
-        const context = this.getContext('2d');
-        if (context) {
-            const shift = {
-                'r': Math.floor(Math.random() * 10) - 5,
-                'g': Math.floor(Math.random() * 10) - 5,
-                'b': Math.floor(Math.random() * 10) - 5,
-                'a': Math.floor(Math.random() * 10) - 5
-            };
-            const width = this.width;
-            const height = this.height;
-            const imageData = context.getImageData(0, 0, width, height);
-            for (let i = 0; i < height; i++) {
-                for (let j = 0; j < width; j++) {
-                    const n = i * (width * 4) + j * 4;
-                    imageData.data[n + 0] = imageData.data[n + 0] + shift.r;
-                    imageData.data[n + 1] = imageData.data[n + 1] + shift.g;
-                    imageData.data[n + 2] = imageData.data[n + 2] + shift.b;
-                    imageData.data[n + 3] = imageData.data[n + 3] + shift.a;
-                }
-            }
-            context.putImageData(imageData, 0, 0);
-        }
-        return originalToDataURL.apply(this, arguments);
-    };
 
     // 7. Mask navigator.webdriver
     mockReadonly(navigator, 'webdriver', undefined);

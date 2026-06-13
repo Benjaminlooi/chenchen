@@ -138,7 +138,6 @@ mod tests {
         assert!(script.contains("productSub")); // ProductSub spoofing
         assert!(script.contains("maxTouchPoints")); // MaxTouchPoints spoofing
         assert!(script.contains("hardwareConcurrency")); // HardwareConcurrency spoofing
-        assert!(script.contains("toDataURL")); // Canvas noise
         assert!(script.contains("plugins"));
         assert!(script.contains("mimeTypes"));
         assert!(script.contains("mockReadonly"));
@@ -147,6 +146,7 @@ mod tests {
         {
             assert!(script.contains("window.chrome"));
             assert!(script.contains("userAgentData")); // Client Hints
+            assert!(script.contains("userAgent")); // Client Hints dynamic check
             assert!(script.contains("permissions"));
         }
         
