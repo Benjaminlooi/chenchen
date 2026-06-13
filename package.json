@@ -1,6 +1,6 @@
 {
   "name": "chenchen",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Multi-LLM Prompt Desktop App",
   "packageManager": "pnpm@11.1.2",
   "type": "module",
