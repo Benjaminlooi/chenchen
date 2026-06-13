@@ -155,4 +155,20 @@ mod tests {
             assert!(script.contains("Apple Computer, Inc."));
         }
     }
+
+    #[test]
+    fn test_stealth_scripts_integrity() {
+        let macos_script = include_str!("stealth_macos.js");
+        assert!(!macos_script.is_empty());
+        assert!(macos_script.contains("Apple Computer, Inc."));
+        assert!(macos_script.contains("webdriver"));
+        assert!(!macos_script.contains("toDataURL"));
+
+        let standard_script = include_str!("stealth.js");
+        assert!(!standard_script.is_empty());
+        assert!(standard_script.contains("Google Inc."));
+        assert!(standard_script.contains("webdriver"));
+        assert!(!standard_script.contains("toDataURL"));
+    }
 }
+

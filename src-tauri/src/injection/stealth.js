@@ -58,10 +58,10 @@
         mockReadonly(navigator, 'hardwareConcurrency', 4);
     }
 
-    // 7. Mask navigator.webdriver
+    // 6. Mask navigator.webdriver
     mockReadonly(navigator, 'webdriver', undefined);
 
-    // 8. Mock window.chrome
+    // 7. Mock window.chrome
     if (!window.chrome) {
         window.chrome = {
             runtime: {
@@ -129,7 +129,7 @@
         };
     }
 
-    // 9. Mock Permissions API
+    // 8. Mock Permissions API
     if (navigator.permissions) {
         const originalQuery = navigator.permissions.query;
         navigator.permissions.query = function(parameters) {
@@ -139,7 +139,7 @@
         };
     }
 
-    // 10. Mock Plugins and MimeTypes
+    // 9. Mock Plugins and MimeTypes
     const pluginsData = [
         {
             name: 'PDF Viewer',
@@ -234,7 +234,7 @@
     const fakeMimeTypes = generateMimeTypeArray(pluginsData);
     mockReadonly(navigator, 'mimeTypes', fakeMimeTypes);
 
-    // 11. WebGL Vendor/Renderer masking
+    // 10. WebGL Vendor/Renderer masking
     try {
         const getParameter = WebGLRenderingContext.prototype.getParameter;
         WebGLRenderingContext.prototype.getParameter = function(parameter) {
@@ -252,7 +252,7 @@
         console.error('Failed to mask WebGL', e);
     }
 
-    // 12. Bind outer dimensions
+    // 11. Bind outer dimensions
     try {
         if (window.outerWidth === 0) {
             Object.defineProperty(window, 'outerWidth', { get: () => window.innerWidth });
